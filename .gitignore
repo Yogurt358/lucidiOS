@@ -1,0 +1,15 @@
+
+bin/
+obj/
+limine/
+
+*.iso
+*.img
+*.raw
+*.qcow2
+
+*.log
+
+.vscode/
+
+lucidiOS_disk
