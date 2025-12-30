@@ -150,7 +150,6 @@ void kmain(void) {
     // drawing a rectangle
     for (size_t i = 0; i < height/2 - 10; i++) {
         i++;
-        i++;
         for  (size_t j = 0; j < width/2 - 10; j++) {
             fb_ptr[i* (framebuffer->pitch / 4) + j] = 0x800080;
         }
