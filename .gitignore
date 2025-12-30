@@ -1,6 +1,7 @@
 
 bin/
 obj/
+iso_root/
 limine/
 
 *.iso
