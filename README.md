@@ -10,4 +10,6 @@
 /_______/\__\// / /____\/ // / /_________\/\__\/_/___\ \ \___\/ //\__\/_/___\/ / /____\/ / \ \/___/ /       
 \_______\/    \/_________/ \/____________/\/_________/  \/_____/ \/_________/\/_________/   \_____\/        
 
-you are not a good person, you know that, right?                                                                                          
+you are not a good person, you know that, right?
+
+title is still messed up though                                                                                           
