@@ -149,16 +149,10 @@ void kmain(void) {
     // j = width
     // drawing a rectangle
     for (size_t i = 0; i < height; i++) {
-        i++;
         for  (size_t j = 0; j < width; j++) {
-        j++;
             fb_ptr[i* (framebuffer->pitch / 4) + j] = 0x800080;
         }
     }
-
-
-
-
 
     // init Serial input
     outb(COM1+1, 0x00); // disable interrupts
