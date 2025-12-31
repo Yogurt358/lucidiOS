@@ -132,22 +132,7 @@ obj/%.S.o: %.S GNUmakefile
 obj/%.asm.o: %.asm GNUmakefile
 	mkdir -p "$(dir $@)"
 	nasm $(NASMFLAGS) $< -o $@
-
-# Remove object files and the final executable.
-.PHONY: clean
-clean:
-	rm -rf bin obj $(ISO_ROOT)
-
-# run the OS
-.PHONY: run iso
-run: $(ISO)
-    #run QEMU
-	qemu-system-x86_64 \
-		-cdrom $(ISO) \
-		-boot order=d \
-		-drive file=lucidiOS_disk,format=raw \
-        -serial stdio
-    # create necassery boot directories
+# creates necassery boot directories
 $(ISO): bin/$(OUTPUT)
 	mkdir -p "$(ISO_ROOT)"
 	mkdir -p $(ISO_ROOT)/boot
@@ -176,6 +161,32 @@ $(ISO): bin/$(OUTPUT)
 		--protective-msdos-label \
 		$(ISO_ROOT) \
 		-o $(ISO)
+
+# Remove object files and the final executable.
+.PHONY: clean
+clean:
+	rm -rf bin obj $(ISO_ROOT)
+
+# run the OS
+.PHONY: run iso
+run: $(ISO)
+    #run QEMU
+	qemu-system-x86_64 \
+		-cdrom $(ISO) \
+		-boot order=d \
+		-drive file=lucidiOS_disk,format=raw \
+		-serial stdio
+
+# stop QEMU and run GDB
+.PHONY: debug
+debug: $(ISO)
+    #run QEMU
+	qemu-system-x86_64 \
+		-s -S \
+		-cdrom $(ISO) \
+		-boot order=d \
+		-drive file=lucidiOS_disk,format=raw \
+		 -serial stdio
 
 
 
