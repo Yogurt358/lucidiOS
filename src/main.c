@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "limine.h" // wheen does it use <> and when does it use ""
+#include "vga.h"
 
 #define COM1 0x3F8 // I/O port of Serial
 
@@ -120,6 +121,8 @@ void write_serial(char a) {
 // If renaming kmain() to something else, make sure to change the
 // linker script accordingly.
 void kmain(void) {
+
+
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         hcf();
@@ -130,6 +133,7 @@ void kmain(void) {
      || framebuffer_request.response->framebuffer_count < 1) {
        hcf();
     }
+    /*
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     volatile uint32_t *fb_ptr = framebuffer->address;
@@ -145,6 +149,8 @@ void kmain(void) {
             fb_ptr[i* (framebuffer->pitch / 4) + j] = 0x800080;
         }
     }
+    */
+    
 
     // init Serial input
     outb(COM1+1, 0x00); // disable interrupts
@@ -155,9 +161,12 @@ void kmain(void) {
     outb(COM1+2, 0xC7); // setup FIFO (unimportant for now)
     outb(COM1+4, 0x0B); // setup modem (unimportant for now)
     char *msg = "\n\nDaisy, Daisy, give me your answer do.\n\n";
+    char *msg1 = "\n\nReset VGA\n\n";
     for (size_t i = 0; msg[i] != '\0'; i++) {write_serial(msg[i]);}
 
-
+    Reset();
+    for (size_t i = 0; msg[i] != '\0'; i++) {write_serial(msg1[i]);}
+    print("Lucidius Powering up\r\n");
 
     hcf();
 }
