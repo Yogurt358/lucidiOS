@@ -1,6 +1,8 @@
 #include "fb.h"
 #include "limine.h"
 
+uint16_t column = 0;
+uint8_t line = 0;
 
 uint8_t font[256][16] = {
     { // Char 0
@@ -1756,6 +1758,7 @@ uint8_t font[256][16] = {
         0b00000000, // 
         0b00000000, // 
         0b00000000, // 
+        0b00000000, // 
         0b01111000, //  ████
         0b00001100, //     ██
         0b00001100, //     ██
@@ -1763,11 +1766,11 @@ uint8_t font[256][16] = {
         0b11001100, // ██  ██
         0b11001100, // ██  ██
         0b11001100, // ██  ██
-        0b01110110, //  ███ ██
-        0b00000000, // 
-        0b00000000  // 
+        0b01110110 //  ███ ██
+        
     },
     { // Char 98 (b)
+        0b00000000, // 
         0b00000000, // 
         0b01100000, //  ██
         0b01100000, //  ██
@@ -1782,7 +1785,6 @@ uint8_t font[256][16] = {
         0b01100110, //  ██  ██
         0b01100110, //  ██  ██
         0b11111100, // ██████
-        0b00000000, // 
         0b00000000  // 
     },
     { // Char 99 (c)
@@ -1792,15 +1794,15 @@ uint8_t font[256][16] = {
         0b00000000, // 
         0b00000000, // 
         0b00000000, // 
-        0b00111100, //   ████
-        0b01100110, //  ██  ██
-        0b01100000, //  ██
-        0b01100000, //  ██
-        0b01100000, //  ██
-        0b01100000, //  ██
-        0b01100110, //  ██  ██
-        0b00111100, //   ████
         0b00000000, // 
+        0b00111100, //   ████
+        0b01100110, //  ██  ██
+        0b01100000, //  ██
+        0b01100000, //  ██
+        0b01100000, //  ██
+        0b01100000, //  ██
+        0b01100110, //  ██  ██
+        0b00111100, //   ████
         0b00000000  // 
     },
     { // Char 100
@@ -4615,6 +4617,38 @@ uint8_t font[256][16] = {
     
 };
 
+void reset(struct limine_framebuffer* _fb) {
+    column = 0;
+    line = 0;
+
+    for (size_t y = 0; y <_fb->height; y++) {
+        for(size_t x = 0; x < _fb->width; x++) {
+            draw_pixel(_fb, x, y, RGB32_BLACK);
+        }
+    }
+}
+void scrollUp(struct limine_framebuffer* _fb) {
+    volatile uint32_t *fb_ptr = _fb->address;
+    for (size_t y = 0; y <_fb->height; y++) {
+        for(size_t x = 0; x < _fb->width; x++) {
+            fb_ptr[(y-1)*(_fb->pitch/4)+x] = RGB32_BLACK;
+        }
+    }
+
+    for(size_t x = 0; x < _fb->width; x++) {
+            fb_ptr[(_fb->height-1)*(_fb->pitch/4)+x] = RGB32_BLACK;
+        }
+}
+void newLine(struct limine_framebuffer* _fb) {
+    if (line < _fb->height - 1) {
+        line++;
+        column = 0;
+    }
+    else {
+        scrollUp(_fb);
+        column = 0;
+    }
+}
 
 void draw_pixel (struct limine_framebuffer* _fb, size_t x, size_t y, uint32_t color) {
     //uint64_t width = _fb->width;
@@ -4626,22 +4660,48 @@ void draw_pixel (struct limine_framebuffer* _fb, size_t x, size_t y, uint32_t co
 }
 
 void draw_character(struct limine_framebuffer* _fb, size_t x, size_t y, char c) {
-    volatile uint32_t *fb_ptr = _fb->address;
 
     for (size_t j = 0; j < 16; j++) {
         uint8_t glyph = font[(unsigned char)(c)][j]; // glyph starts at 0b00000000
 
         for (size_t i = 0; i < 8; i++) {
-            if (glyph & (0x80 >> i)) {fb_ptr[(y+j)*(_fb->pitch/4)+(x+i)] = RGB32_WHITE;}
-            else {fb_ptr[(y+j)*(_fb->pitch/4)+(x+i)] = RGB32_BLACK;}
+            if (glyph & (0x80 >> i)) {draw_pixel(_fb, (x+i), (y+j), RGB32_WHITE);}
+            else {draw_pixel(_fb, (x+i), (y+j), RGB32_BLACK);}
         }
     }
 }
 
-void draw_sentence(struct limine_framebuffer* _fb, size_t x, size_t y, char* s) {
+void draw_sentence(struct limine_framebuffer* _fb, char* s) {
+    // Calculate max columns and lines based on 8x16 font
+    uint16_t max_cols = _fb->width / 8;
+    //uint16_t max_lines = _fb->height / 16;
+
     while(*s != '\0') {
-        draw_character(_fb, x, y, *s);
-        x += 8;
+        switch(*s) {
+            case '\n':
+                newLine(_fb);
+                break;
+            case '\r':
+                column = 0;
+                break;
+            case '\t':
+                if(column >= max_cols) {
+                    newLine(_fb);
+                }
+                uint16_t tabLen = 4;
+                for(int x = 0; x < tabLen; x++) {
+                    draw_character(_fb, (column++*8), line*16, 255);
+                }
+                break;
+            default:
+                if (column >= max_cols) {
+                    newLine(_fb);
+                }
+                // Convert grid (column, line) to pixels (column*8, line*16)
+                draw_character(_fb, column * 8, line * 16, *s);
+                column++;
+                break;
+        }
         s++;
     }
 }
