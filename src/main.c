@@ -157,7 +157,7 @@ void kmain(void) {
 
     //draw_pixel(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 0xFFFFFF);
 
-    draw_character(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2);
+    draw_character(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 'a');
     
     
 
