@@ -4616,7 +4616,7 @@ uint8_t font[256][16] = {
 };
 
 
-void draw_pixel (struct limine_framebuffer* _fb, int x, int y, uint32_t color) {
+void draw_pixel (struct limine_framebuffer* _fb, size_t x, size_t y, uint32_t color) {
     //uint64_t width = _fb->width;
     //uint64_t height = _fb->height;
     volatile uint32_t *fb_ptr = _fb->address;
@@ -4625,7 +4625,7 @@ void draw_pixel (struct limine_framebuffer* _fb, int x, int y, uint32_t color) {
 
 }
 
-void draw_character(struct limine_framebuffer* _fb, int x, int y, uint8_t c) {
+void draw_character(struct limine_framebuffer* _fb, size_t x, size_t y, char c) {
     volatile uint32_t *fb_ptr = _fb->address;
 
     for (size_t j = 0; j < 16; j++) {
@@ -4638,5 +4638,10 @@ void draw_character(struct limine_framebuffer* _fb, int x, int y, uint8_t c) {
     }
 }
 
-//void draw_sentence(struct limine_framebuffer* _fb, int x, int y, uint8_t* s) {
-//}
+void draw_sentence(struct limine_framebuffer* _fb, size_t x, size_t y, char* s) {
+    while(*s != '\0') {
+        draw_character(_fb, x, y, *s);
+        x += 8;
+        s++;
+    }
+}

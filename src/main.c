@@ -155,9 +155,8 @@ void kmain(void) {
     }
     */
 
-    //draw_pixel(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 0xFFFFFF);
-
-    draw_character(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 'b');
+    char *msg2 = "hello";
+    draw_sentence(framebuffer, 0, 0, msg2);
     
     
 
