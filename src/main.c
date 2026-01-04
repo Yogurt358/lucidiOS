@@ -142,7 +142,7 @@ void kmain(void) {
     
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    volatile uint32_t *fb_ptr = framebuffer->address;
+    //volatile uint32_t *fb_ptr = framebuffer->address;
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
     /*
     // i = height 
@@ -157,7 +157,7 @@ void kmain(void) {
 
     //draw_pixel(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 0xFFFFFF);
 
-    draw_character(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 'a');
+    draw_character(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 'b');
     
     
 

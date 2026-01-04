@@ -9,4 +9,6 @@
 
 void draw_pixel (struct limine_framebuffer* _fb, int x, int y, uint32_t color);
 
-void draw_character (struct limine_framebuffer* _fb, int x, int y);
+void draw_character (struct limine_framebuffer* _fb, int x, int y, uint8_t c);
+
+//void draw_sentence(struct limine_framebuffer* _fb, int x, int y, uint8_t* s);
