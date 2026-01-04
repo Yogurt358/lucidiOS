@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include "limine.h" // wheen does it use <> and when does it use ""
+#include "limine.h" 
+#include "fb.h"
 
 #define COM1 0x3F8 // I/O port of Serial
 
@@ -142,10 +143,8 @@ void kmain(void) {
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     volatile uint32_t *fb_ptr = framebuffer->address;
-    uint64_t width  = framebuffer->width;
-    uint64_t height = framebuffer->height;
     // Note: we assume the framebuffer model is RGB with 32-bit pixels.
-
+    /*
     // i = height 
     // j = width
     // drawing a rectangle
@@ -154,7 +153,9 @@ void kmain(void) {
             fb_ptr[i* (framebuffer->pitch / 4) + j] = 0x800080;
         }
     }
-    
+    */
+
+    draw_pixel(framebuffer, (framebuffer->width)/2, (framebuffer->height)/2, 0xFFFFFF);
     
     
 
