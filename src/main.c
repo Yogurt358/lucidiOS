@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "limine.h" 
 #include "fb.h"
+#include "gdt_handle.h"
 
 #define COM1 0x3F8 // I/O port of Serial
 
@@ -178,8 +179,6 @@ void kmain(void) {
 "are unavailable. \n\t\t--- End of Test ---";
     draw_sentence(framebuffer, test_passage);
 
-    
-
     // init Serial input
     outb(COM1+1, 0x00); // disable interrupts
     outb(COM1+3, 0x80); //setup Baud rate (115200 / 12 = 9600)
@@ -190,6 +189,10 @@ void kmain(void) {
     outb(COM1+4, 0x0B); // setup modem (unimportant for now)
     char *msg = "\n\nDaisy, Daisy, give me your answer do.\n\n";
     for (size_t i = 0; msg[i] != '\0'; i++) {write_serial(msg[i]);}
+    
+    gdtr_t testing_ptr;
+
+    sgdt(&testing_ptr);
 
     hcf();
 }
