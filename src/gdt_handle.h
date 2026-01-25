@@ -3,8 +3,6 @@
 #include <stddef.h>
 #include "limine.h"
 
-#define TSS_ENTRY_SIZE 104
-
 struct tss_entry {
     uint32_t reserved0;
     uint64_t rsp0;

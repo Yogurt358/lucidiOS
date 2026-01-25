@@ -143,8 +143,8 @@ void kmain(void) {
     for (size_t i = 0; msg[i] != '\0'; i++) {write_serial(msg[i]);}
     
     gdtr_t testing_ptr;
-
     sgdt(&testing_ptr);
+    init_tss();
 
     hcf();
 }
