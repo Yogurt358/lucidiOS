@@ -40,7 +40,6 @@ struct gdtr {
     uint64_t base;
 } __attribute__((packed));
 
-uint16_t tss_selector = 0x28;
 
 typedef struct gdtr gdtr_t;
 typedef struct tss_entry tss_entry_t;

@@ -1,21 +1,24 @@
 #include "gdt_handle.h"
 #include "limine.h"
+#include "common.h"
 
 volatile uint8_t kernel_stack[8192];
+uint16_t tss_selector = 0x28;
+tss_entry_t entry;
+tss_descriptor_t descriptor;
+
+
 
 void init_tss() {
 
     //limit is the limit of the TSS_entry
     //base is the address of the entry
 
-    tss_entry_t entry;
     memset(&entry,0,TSS_ENTRY_SIZE);
     entry.rsp0 = (uint64_t)&kernel_stack + sizeof(kernel_stack);
     entry.iopb = sizeof(tss_entry_t);
 
-
        
-    tss_descriptor_t descriptor;
     memset(&descriptor,0,sizeof(tss_descriptor_t));
     /*descriptor.limit1 = 
     descriptor.limit2 = 
