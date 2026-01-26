@@ -40,6 +40,6 @@ void init_tss() {
 }
 
 void load_tss() {
-    lgdt(&gdt_reg);
     ltr();
+    lgdt(&gdt_reg);
 }
