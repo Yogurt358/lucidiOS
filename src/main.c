@@ -142,9 +142,9 @@ void kmain(void) {
     char *msg = "\n\nDaisy, Daisy, give me your answer do.\n\n";
     for (size_t i = 0; msg[i] != '\0'; i++) {write_serial(msg[i]);}
     
-    gdtr_t testing_ptr;
-    sgdt(&testing_ptr);
     init_tss();
+    load_tss();
+    
 
     hcf();
 }

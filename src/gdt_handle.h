@@ -46,6 +46,14 @@ typedef struct tss_descriptor tss_descriptor_t;
 static inline void sgdt(gdtr_t* ptr) {
     asm volatile ("sgdt %0" :"=m"(*ptr)::"memory");
 }
+
+static inline void ltr() {
+    asm volatile ("ltr %w0"::"r"((uint16_t)0x28):);
+}
+
+static inline void lgdt(gdtr_t* ptr) {
+    asm volatile ("lgdt %0"::"m"(*ptr): "memory");
+}
+
 void init_tss();
-//void load_tss();
-//void switch_save();
+void load_tss();
