@@ -1,10 +1,5 @@
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include "limine.h" 
 #include "fb.h"
 #include "gdt_handle.h"
-#include "common.h"
 
 #define COM1 0x3F8 // I/O port of Serial
 
@@ -145,6 +140,8 @@ void kmain(void) {
     init_tss();
     load_tss();
     
+    reset(framebuffer);
+    draw_sentence(framebuffer, "There are no two words more harmful, then good job");
 
     hcf();
 }

@@ -1,7 +1,5 @@
 #pragma once
-#include <stdint.h>
-#include <stddef.h>
-#include "limine.h"
+#include "common.h"
 
 #define RGB32_WHITE 0xFFFFFF
 #define RGB32_BLACK 0x000000

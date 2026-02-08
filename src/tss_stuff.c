@@ -1,6 +1,4 @@
 #include "gdt_handle.h"
-#include "limine.h"
-#include "common.h"
 
 volatile uint8_t kernel_stack[8192] __attribute__((aligned(16)));
 tss_entry_t entry;
