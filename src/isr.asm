@@ -1,7 +1,5 @@
 [bits 64]
 
-; --- The Macros (Think of these as templates) ---
-
 %macro PUSH_ALL 0
     push rax
     push rbx
@@ -48,18 +46,14 @@ isr0:
     jmp isr_common
 
 isr_common:
-    PUSH_ALL           ; NASM literally pastes the 15 pushes here
+    PUSH_ALL
 
-    ; In 64-bit C (System V ABI), the first argument is passed in RDI
-    ; We pass RSP so our C code has a pointer to all the registers we just pushed
+    ; pass RSP to have a pointer to all the registers pushed
     mov rdi, rsp       
-    
-    ; IMPORTANT: The 64-bit ABI requires the stack to be 16-byte aligned 
-    ; before calling a C function. Pushing 15 registers + 2 numbers + RBP
-    ; usually handles this, but keep an eye on it.
+
     call isr_handler_0
 
-    POP_ALL            ; NASM literally pastes the 15 pops here
+    POP_ALL
     
-    add rsp, 16        ; Clean up the 2 numbers we pushed at the start
-    iretq              ; Return from interrupt
+    add rsp, 16        
+    iretq              
