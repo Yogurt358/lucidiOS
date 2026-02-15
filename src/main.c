@@ -1,5 +1,6 @@
 #include "fb.h"
 #include "gdt_handle.h"
+#include "interrupts.h"
 
 #define COM1 0x3F8 // I/O port of Serial
 
@@ -140,6 +141,12 @@ void kmain(void) {
     init_tss();
     load_tss();
     
+    init_interrupts();
+
+    volatile int a = 5;
+    volatile int b = 0;
+    volatile int c = a / b;
+
     reset(framebuffer);
     draw_sentence(framebuffer, "There are no two words more harmful, then good job");
 

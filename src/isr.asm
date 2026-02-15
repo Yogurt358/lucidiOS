@@ -1,4 +1,6 @@
 [bits 64]
+global isr_common
+extern isr_handler_C
 
 %macro PUSH_ALL 0
     push rax
@@ -18,8 +20,9 @@
     push r15
 %endmacro
 
-%macro POP_ALL 0
-    pop r15
+%macro PULL_ALL 0
+
+	pop r15
     pop r14
     pop r13
     pop r12
@@ -34,25 +37,61 @@
     pop rcx
     pop rbx
     pop rax
+
 %endmacro
 
-extern isr_handler_0
-section .text
+%macro ISR_NOERR 1
+global isr%1
+isr%1:
+	push 0 ; no error code
+	push %1 ; vector number
+	lea rax, [rel isr_common]
+	jmp rax
+%endmacro
 
-global isr0
-isr0:  
-    push 0             ; Dummy error code
-    push 0             ; Interrupt vector (0 for Division Error)
-    jmp isr_common
+%macro ISR_ERR 1
+global isr%1
+isr%1:
+	; CPU already pushed error code
+	push %1 ; vector number
+    lea rax, [rel isr_common]
+	jmp rax
+%endmacro
+
+section .data
+;---------------------variabels---------------------;
+
+
+
+;---------------------variabels---------------------;
+section .text
+;---------------------functions---------------------;
+
+
+
+;---------------------functions---------------------;
+
+ISR_NOERR 0
+ISR_NOERR 1
+ISR_ERR 8
+ISR_ERR 14
 
 isr_common:
-    PUSH_ALL
+;---------------------code---------------------;
 
-    ; pass RSP to have a pointer to all the registers pushed
-    mov rdi, rsp       
-    call isr_handler_0
 
-    POP_ALL
-    
-    add rsp, 16        
-    iretq              
+
+PUSH_ALL
+
+mov rdi, rsp 
+
+mov rax, qword isr_handler_C
+call rax
+
+
+
+PULL_ALL
+add rsp, 16 
+iretq
+
+;---------------------code---------------------;
