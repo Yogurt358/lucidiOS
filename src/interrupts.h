@@ -5,8 +5,8 @@
 
 struct idt_entry {
    uint16_t offset1; // how do I get the address of the ISR stub? 
-   uint16_t selector; // how do I get the selector? why do I even need the CS?
-   uint8_t  ist:3;    // how do I get this from the TSS?         
+   uint16_t selector;
+   uint8_t  ist:3;      
    uint8_t  type_attributes;
    uint16_t offset_2;        
    uint32_t offset_3;        
@@ -30,5 +30,5 @@ static inline void sidt(idtr_t* ptr) {
 }
 
 extern void isr_handler_0();
-void init_idt(uint8_t idt_flags);
+void entry_DE();
 void load_idt();
