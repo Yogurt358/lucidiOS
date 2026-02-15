@@ -1,4 +1,4 @@
-#include "idt.h"
+#include "interrupts.h"
 
 idtr_t idt_reg;
 idt_entry_t i_entry;

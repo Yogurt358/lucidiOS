@@ -50,7 +50,6 @@ isr_common:
 
     ; pass RSP to have a pointer to all the registers pushed
     mov rdi, rsp       
-
     call isr_handler_0
 
     POP_ALL
