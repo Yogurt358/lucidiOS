@@ -85,8 +85,7 @@ PUSH_ALL
 
 mov rdi, rsp ; pass pointer to stack
 
-mov rax, qword isr_handler_C
-call rax
+call isr_handler_C
 
 PULL_ALL
 

@@ -1,8 +1,6 @@
 #pragma once
 #include "common.h"
 
-#define CS_SELECTOR 0x08
-
 struct idt_entry {
    uint16_t offset1; // how do I get the address of the ISR stub? 
    uint16_t selector;
@@ -33,6 +31,12 @@ static inline void lidt(idtr_t* ptr) {
     asm volatile("lidt %0"::"m"(*ptr):"memory");
 }
 
+static inline uint16_t get_cs(void) {
+    uint16_t cs;
+    asm volatile("mov %%cs, %0" : "=r"(cs));
+    return cs;
+}
+
 extern void isr_handler_C(stack_frame_t *frame);
-void set_gate(size_t n, uint8_t flags, uint64_t isr_address, uint8_t _ist);
+void set_gate(size_t n, uint8_t flags, uint64_t isr_address, uint8_t _ist, uint16_t css);
 void init_interrupts();
