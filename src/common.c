@@ -50,3 +50,36 @@ int memcmp(const void *s1, const void *s2, size_t n) {
 
     return 0;
 }
+
+int is_transmit_empty() {
+   return inb(COM1 + 5) & 0x20;
+}
+
+void write_serial(char a) {
+   while (is_transmit_empty() == 0);
+
+   outb(COM1,a);
+}
+
+void init_serial() {
+// init Serial input
+    outb(COM1+1, 0x00); // disable interrupts
+    outb(COM1+3, 0x80); //setup Baud rate (115200 / 12 = 9600)
+    outb(COM1, 0x0C);
+    outb(COM1+1, 0x00); 
+    outb(COM1+3, 0x03); // set up line Protocol
+    outb(COM1+2, 0xC7); // setup FIFO (unimportant for now)
+    outb(COM1+4, 0x0B); // setup modem (unimportant for now)
+    
+    char *msg = "\n\nDaisy, Daisy, give me your answer do.\n\n";
+    for (size_t i = 0; msg[i] != '\0'; i++) {
+        write_serial(msg[i]);
+    }
+
+}
+
+void write_better(char* a) {
+    for (size_t i = 0; a[i] != '\0'; i++) {
+        write_serial(a[i]);
+    }
+}

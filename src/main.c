@@ -1,8 +1,7 @@
 #include "fb.h"
 #include "gdt_handle.h"
 #include "interrupts.h"
-
-#define COM1 0x3F8 // I/O port of Serial
+#include "common.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -48,32 +47,14 @@ static void hcf(void) {
     }
 }
 
-static inline void outb(uint16_t port, uint8_t value) {
-    asm volatile ("outb %0, %1":: "a"(value), "Nd"(port));
-}
 
-static inline uint8_t inb(uint16_t port) {
-    uint8_t ret;
-    asm volatile ("inb %1, %0": "=a"(ret): "Nd"(port));
-    return ret;
-}
-
-int is_transmit_empty() {
-   return inb(COM1 + 5) & 0x20;
-}
-
-void write_serial(char a) {
-   while (is_transmit_empty() == 0);
-
-   outb(COM1,a);
-}
 
 // The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the
 // linker script accordingly.
 void kmain(void) {
 
-
+    init_serial();
 
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
@@ -86,23 +67,10 @@ void kmain(void) {
        hcf();
     }
 
-    
 
     
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    //volatile uint32_t *fb_ptr = framebuffer->address;
-    // Note: we assume the framebuffer model is RGB with 32-bit pixels.
-    /*
-    // i = height 
-    // j = width
-    // drawing a rectangle
-    for (size_t i = 0; i < height; i++) {
-        for  (size_t j = 0; j < width; j++) {
-            fb_ptr[i* (framebuffer->pitch / 4) + j] = 0x800080;
-        }
-    }
-    */
 
     char* test_passage = 
 "\tVideo Graphics Array (VGA) is a video display controller and accompanying graphics standard, "
@@ -126,17 +94,6 @@ void kmain(void) {
 "as a fallback 'safe mode' for modern operating systems when high-resolution drivers "
 "are unavailable. \n\t\t--- End of Test ---";
     draw_sentence(framebuffer, test_passage);
-
-    // init Serial input
-    outb(COM1+1, 0x00); // disable interrupts
-    outb(COM1+3, 0x80); //setup Baud rate (115200 / 12 = 9600)
-    outb(COM1, 0x0C);
-    outb(COM1+1, 0x00); 
-    outb(COM1+3, 0x03); // set up line Protocol
-    outb(COM1+2, 0xC7); // setup FIFO (unimportant for now)
-    outb(COM1+4, 0x0B); // setup modem (unimportant for now)
-    char *msg = "\n\nDaisy, Daisy, give me your answer do.\n\n";
-    for (size_t i = 0; msg[i] != '\0'; i++) {write_serial(msg[i]);}
     
     //init_tss();
     //load_tss();
@@ -145,7 +102,7 @@ void kmain(void) {
 
     volatile int a = 5;
     volatile int b = 0;
-    volatile int c = a / b;
+    //volatile int c = a / b;
 
     reset(framebuffer);
     draw_sentence(framebuffer, "There are no two words more harmful, then good job");
