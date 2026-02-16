@@ -57,6 +57,8 @@ static void hcf(void) {
 void kmain(void) {
 
     init_serial();
+    init_interrupts();
+
 
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
@@ -100,7 +102,6 @@ void kmain(void) {
     //init_tss();
     //load_tss();
     
-    init_interrupts();
 
     volatile int a = 5;
     volatile int b = 0;
