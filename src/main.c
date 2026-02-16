@@ -3,6 +3,8 @@
 #include "interrupts.h"
 #include "common.h"
 
+
+
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
 // See specification for further info.
@@ -102,7 +104,7 @@ void kmain(void) {
 
     volatile int a = 5;
     volatile int b = 0;
-    //volatile int c = a / b;
+    volatile int c = a / b;
 
     reset(framebuffer);
     draw_sentence(framebuffer, "There are no two words more harmful, then good job");

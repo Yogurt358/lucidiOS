@@ -77,8 +77,6 @@ ISR_ERR 8
 ISR_ERR 14
 
 isr_common:
-;---------------------code---------------------;
-
 
 
 PUSH_ALL
@@ -89,7 +87,5 @@ call isr_handler_C
 
 PULL_ALL
 
-add rsp, 16 ; pop vecotr and error code out of stack
+add rsp, 16 ; pop vector and error code out of stack
 iretq
-
-;---------------------code---------------------;
