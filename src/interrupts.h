@@ -14,7 +14,10 @@ struct idt_entry {
 }__attribute__((packed));
 
 struct stack_frame {
-uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, err_code, vector, rip, cs, rflags, rsp, ss;
+uint64_t r15, r14, r13, r12, r11, r10, r9, r8,
+         rbp, rdi, rsi, rdx, rcx, rbx, rax,
+         vector, err_code,
+         rip, cs, rflags, rsp, ss; // CPU pushes automatically when interrupt
 }__attribute__((packed));
 
 struct idtr{
@@ -28,10 +31,6 @@ typedef struct stack_frame stack_frame_t;
 
 static inline void lidt(idtr_t* ptr) {
     asm volatile("lidt %0"::"m"(*ptr):"memory");
-}
-
-static inline void sidt(idtr_t* ptr) {
-    asm volatile("sidt %0":"=m"(*ptr)::"memory");
 }
 
 extern void isr_handler_C(stack_frame_t *frame);

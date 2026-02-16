@@ -83,15 +83,14 @@ isr_common:
 
 PUSH_ALL
 
-mov rdi, rsp 
+mov rdi, rsp ; pass pointer to stack
 
 mov rax, qword isr_handler_C
 call rax
 
-
-
 PULL_ALL
-add rsp, 16 
+
+add rsp, 16 ; pop vecotr and error code out of stack
 iretq
 
 ;---------------------code---------------------;
