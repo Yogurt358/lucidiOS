@@ -1,7 +1,6 @@
 #include "fb.h"
 #include "gdt_handle.h"
 #include "interrupts.h"
-#include "common.h"
 
 
 
