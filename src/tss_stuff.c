@@ -4,7 +4,7 @@ volatile uint8_t kernel_stack[8192] __attribute__((aligned(16)));
 tss_entry_t entry;
 tss_entry_t* entry_ptr = &entry;
 tss_descriptor_t descriptor;
-gdtr_t gdt_reg;
+gdtr_t tss_reg;
 
 
 
@@ -13,8 +13,8 @@ void init_tss() {
     //limit is the limit of the TSS_entry
     //base is the address of the entry
 
-    sgdt(&gdt_reg);
-    gdt_reg.limit += 16;
+    sgdt(&tss_reg);
+    tss_reg.limit += 16;
 
     uint32_t entry_size = sizeof(tss_entry_t);
 
@@ -32,12 +32,12 @@ void init_tss() {
     descriptor.access_byte = 0b10001001;
     descriptor.flags = 0b0000;
 
-    void* gdt_dest = (void*)(gdt_reg.base + 0x28);
+    void* gdt_dest = (void*)(tss_reg.base + 0x28);
     memcpy(gdt_dest, &descriptor, sizeof(tss_descriptor_t));
 
 }
 
 void load_tss() {
-    lgdt(&gdt_reg);
+    lgdt(&tss_reg);
     ltr();
 }

@@ -100,11 +100,7 @@ void kmain(void) {
     
     //init_tss();
     //load_tss();
-    
 
-    volatile int a = 5;
-    volatile int b = 0;
-    volatile int c = a / b;
 
     reset(framebuffer);
     draw_sentence(framebuffer, "There are no two words more harmful, then good job");

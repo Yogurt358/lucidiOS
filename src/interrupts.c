@@ -6,7 +6,7 @@ extern void isr14();
 
 
 idtr_t idt_reg;
-idt_entry_t i_entry[256] __attribute__((aligned));
+volatile idt_entry_t i_entry[256] __attribute__((aligned));
 
 extern void isr_handler_C(stack_frame_t *frame) {
     size_t temp = frame->vector;

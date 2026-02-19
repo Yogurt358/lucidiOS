@@ -1,6 +1,5 @@
 #pragma once
 #include "common.h"
-#include "limine.h"
 
 struct tss_entry {
     uint32_t reserved0;

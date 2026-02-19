@@ -2,7 +2,7 @@
 #include "common.h"
 
 struct idt_entry {
-   uint16_t offset1; // how do I get the address of the ISR stub? 
+   uint16_t offset1;
    uint16_t selector;
    uint8_t  ist;      
    uint8_t  type_attributes;
