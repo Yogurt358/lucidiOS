@@ -73,6 +73,7 @@ section .text
 
 ISR_NOERR 0
 ISR_NOERR 1
+ISR_NOERR 6
 ISR_ERR 8
 ISR_ERR 14
 

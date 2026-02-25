@@ -70,40 +70,23 @@ void kmain(void) {
        hcf();
     }
 
-
     
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
-    char* test_passage = 
-"\tVideo Graphics Array (VGA) is a video display controller and accompanying graphics standard, "
-"first introduced by IBM with the PS/2 line of computers in 1987. \nDue to its widespread adoption, "
-"the term has also come to mean either an analog computer display standard, the 15-pin D-subminiature "
-"VGA connector, or the 640x480 resolution itself.\n\n"
-"Technical Specifications:\n"
-"\t* 256 KB Video RAM (On-board)\n"
-"\t* 16-color and 256-color modes\n"
-"\t* 262,144-color palette (6 bits each for red, green, and blue)\n"
-"\t* Selectable 25.175 MHz or 28.322 MHz master clock\n\n"
-"Standard Graphics Modes:\n"
-"\t640x480 in 16 colors\n"
-"\t320x200 in 256 colors (Mode 13h)\n"
-"\tText mode: 80x25 or 40x25 characters\n\n"
-"Testing Carriage Return (\r): \n"
-"Loading System... [          ]\r"
-"Loading System... [##########]\n\n"
-"The VGA standard was officially succeeded by the IBM XGA standard, but it remained "
-"the most common interface for PC graphics for over a decade. \tEven today, VGA is used "
-"as a fallback 'safe mode' for modern operating systems when high-resolution drivers "
-"are unavailable. \n\t\t--- End of Test ---";
-    draw_sentence(framebuffer, test_passage);
+    draw_sentence(framebuffer, "Check 1");
     
     //init_tss();
     //load_tss();
 
 
+    volatile int a = 3;
+    volatile int b = 0;
+    volatile int c = a/b;
+
+
     reset(framebuffer);
-    draw_sentence(framebuffer, "There are no two words more harmful, then good job");
+    draw_sentence(framebuffer, "Check 2");
 
     hcf();
 }

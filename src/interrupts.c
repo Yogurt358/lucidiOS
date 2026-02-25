@@ -1,6 +1,7 @@
 #include "interrupts.h"
 extern void isr0();
 extern void isr1();
+extern void isr6();
 extern void isr8();
 extern void isr14();
 
@@ -13,19 +14,23 @@ extern void isr_handler_C(stack_frame_t *frame) {
 
     switch(temp) {
         case(0):
-            write_better("\n#DE Dumbass Piece of Shit you divided by zero you stupid what's 9+10 21\n");
+            write_better("\n#DE\n");
             for(;;);
             break;
         case(1):
-            write_better("\n why'd you stop?");
+            write_better("\n#DB");
+            for(;;);
+            break;
+        case(6):
+            write_better("\n#UD\n");
             for(;;);
             break;
         case(8):
-            write_better("\n#DF not only did you fuck it up once but TWICE! define your goddam IDT Gates!\n");
+            write_better("\n#DF\n");
             for(;;);
             break;
         case(14):
-            write_better("\n#PG did you actually just try to go there? THAT MEMORY ISN'T DEFINED!!");
+            write_better("\n#PF");
             uint64_t faulting_address;
             asm volatile("mov %%cr2, %0" : "=r"(faulting_address));
             for(;;);
@@ -47,12 +52,13 @@ void set_gate(size_t n, uint8_t flags, uint64_t isr_address, uint8_t _ist, uint1
 }
 
 void init_interrupts() {
-    memset(&i_entry, 0, sizeof(i_entry));
+    memset(&i_entry[0], 0, sizeof(i_entry));
 
     uint16_t current_cs = get_cs();
 
     set_gate(0, 0x8E, (uint64_t)isr0, 0, current_cs); // #DE gate
     set_gate(1, 0x8E, (uint64_t)isr1, 0, current_cs); // #DB gate
+    set_gate(6, 0x8E, (uint64_t)isr6, 0, current_cs); // #UD gate
     set_gate(8, 0x8E, (uint64_t)isr8, 0, current_cs); // #DF gate
     set_gate(14, 0x8E, (uint64_t)isr14, 0, current_cs); // #PF gate
 
