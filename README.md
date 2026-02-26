@@ -9,7 +9,7 @@
 
 title is still messed up                                                                                         
 
-Greetings to all who happen to stumble upon my humble project. I am developing an OS that will provide the user with a bash-inspired terminal, a filesystem and text editor. the OS kernel will obviously have interrupts, half high and half low virtual memory paging, 
+Greetings to all who happen to stumble upon my humble project. I am developing an OS that will provide the user with a bash-inspired terminal, a filesystem and text editor. the OS kernel will obviously have interrupts, half high and half low virtual memory paging, 64 bit long mode.
 
 
 Tools I am using:
