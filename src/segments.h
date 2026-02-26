@@ -24,8 +24,8 @@ struct tss_descriptor {
     uint16_t base1;
     uint8_t base2;
     uint8_t access_byte;
-    uint8_t limit2; // is only 4 bit
-    uint8_t flags; // is only 4 bits
+    uint8_t limit2:4; // is only 4 bit
+    uint8_t flags:4; // is only 4 bits
     uint8_t base3;
     uint32_t base4;
     uint32_t reserved0;
@@ -61,7 +61,7 @@ static inline void lgdt(gdtr_t* ptr) {
     asm volatile ("lgdt %0"::"m"(*ptr): "memory");
 }
 
-void set_segment(uint8_t access, uint8_t flag);
+void set_segment(size_t n, uint8_t access, uint8_t flag);
 void set_TSS(uint8_t access, uint8_t flag);
 void init_gdt();
 
