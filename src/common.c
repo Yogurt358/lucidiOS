@@ -61,6 +61,12 @@ void write_serial(char a) {
    outb(COM1,a);
 }
 
+void write_better(char* a) {
+    for (size_t i = 0; a[i] != '\0'; i++) {
+        write_serial(a[i]);
+    }
+}
+
 void init_serial() {
 // init Serial input
     outb(COM1+1, 0x00); // disable interrupts
@@ -78,8 +84,4 @@ void init_serial() {
 
 }
 
-void write_better(char* a) {
-    for (size_t i = 0; a[i] != '\0'; i++) {
-        write_serial(a[i]);
-    }
-}
+

@@ -63,12 +63,17 @@ void init_interrupts() {
 
     uint16_t current_cs = get_cs();
 
+    write_better("setting up IDT\n");
+
     set_gate(0, 0x8E, (uint64_t)isr0, 0, current_cs); // #DE gate
     set_gate(1, 0x8F, (uint64_t)isr1, 0, current_cs); // #DB gate
     set_gate(6, 0x8E, (uint64_t)isr6, 0, current_cs); // #UD gate
     set_gate(8, 0x8E, (uint64_t)isr8, 0, current_cs); // #DF gate
     set_gate(13, 0x8E, (uint64_t)isr13, 0, current_cs); // #GP gate
     set_gate(14, 0x8E, (uint64_t)isr14, 0, current_cs); // #PF gate
+
+    write_better("IDT set up\n");
+
 
     idt_reg.size = (sizeof(idt_entry_t) * 256) - 1;
     idt_reg.offset = (uint64_t)&i_entry;

@@ -19,16 +19,26 @@ struct tss_entry {
     uint16_t iopb;
 } __attribute__((packed));
 
-struct gdt_descriptor { 
+struct tss_descriptor { 
     uint16_t limit1;
     uint16_t base1;
     uint8_t base2;
     uint8_t access_byte;
-    uint8_t limit2;
-    uint8_t flags;
+    uint8_t limit2; // is only 4 bit
+    uint8_t flags; // is only 4 bits
     uint8_t base3;
     uint32_t base4;
     uint32_t reserved0;
+} __attribute__((packed));
+
+struct gdt_descriptor { // 64 bits
+    uint16_t limit1;
+    uint16_t base1;
+    uint8_t base2;
+    uint8_t access_byte;
+    uint8_t limit2:4;
+    uint8_t flags:4;
+    uint8_t base3;
 } __attribute__((packed));
 
 struct gdtr {
@@ -40,6 +50,8 @@ struct gdtr {
 typedef struct gdtr gdtr_t;
 typedef struct tss_entry tss_entry_t;
 typedef struct gdt_descriptor gdt_descriptor_t;
+typedef struct tss_descriptor tss_descriptor_t;
+
 
 static inline void ltr() {
     asm volatile ("ltr %w0"::"r"((uint16_t)0x28):);
@@ -49,7 +61,7 @@ static inline void lgdt(gdtr_t* ptr) {
     asm volatile ("lgdt %0"::"m"(*ptr): "memory");
 }
 
-void load_tss();
+void set_segment(uint8_t access, uint8_t flag);
+void set_TSS(uint8_t access, uint8_t flag);
 void init_gdt();
-void set_segment();
 

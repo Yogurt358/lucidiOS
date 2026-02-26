@@ -1,6 +1,6 @@
 #include "fb.h"
-#include "gdt_handle.h"
 #include "interrupts.h"
+#include "segments.h"
 
 
 
@@ -54,8 +54,8 @@ static void hcf(void) {
 // If renaming kmain() to something else, make sure to change the
 // linker script accordingly.
 void kmain(void) {
-
     init_serial();
+    init_gdt();
     init_interrupts();
 
 
@@ -76,13 +76,13 @@ void kmain(void) {
 
     draw_sentence(framebuffer, "Check 1");
     
-    //init_tss(); // tss isn't working correctly now, am fixing it.
+    //init_tss(); // tss isn't working correctly now, I'm fixing it.
     //load_tss();
 
 
     //volatile int a = 3;
     //volatile int b = 0;
-    //volatile int c = a/b;
+    //volatile int c = a/b; checking that #DE works
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
