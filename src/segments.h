@@ -51,4 +51,5 @@ static inline void lgdt(gdtr_t* ptr) {
 
 void load_tss();
 void init_gdt();
+void set_segment();
 

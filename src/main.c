@@ -76,14 +76,13 @@ void kmain(void) {
 
     draw_sentence(framebuffer, "Check 1");
     
-    //init_tss();
+    //init_tss(); // tss isn't working correctly now, am fixing it.
     //load_tss();
 
 
-    volatile int a = 3;
-    volatile int b = 0;
-    volatile int c = a/b;
-
+    //volatile int a = 3;
+    //volatile int b = 0;
+    //volatile int c = a/b;
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");

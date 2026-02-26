@@ -1,5 +1,7 @@
 #include "segments.h"
 
+extern void kcs;
+
 gdtr_t gdt_reg;
 /*
 entry 0 - NULL mustn't be filled    8 bytes 
@@ -16,6 +18,7 @@ gdt_descriptor_t s_entry[7] __attribute__((aligned));
 void init_gdt() {
     gdt_reg.base = (uint64_t)&s_entry;
     gdt_reg.limit = 56;
+    memset(&gdt_reg,0,sizeof(gdt_reg)); // reserved regions must be 0 or else general protection fault
 
     
 
