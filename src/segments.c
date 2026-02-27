@@ -6,16 +6,18 @@ gdtr_t gdt_reg;
 tss_descriptor_t tss_desc;
 tss_entry_t tss_entry;
 volatile uint16_t check_CS;
+volatile uint16_t check_DS;
+
 
 /*
-entry 0 - NULL mustn't be filled    8 bytes 
-entry 1 - Kernel CS                 8 bytes
-entry 2 - User CS                   8 bytes 
-entry 3 - Kernel DS                 8 bytes 
-entry 4 - User DS                   8 bytes 
+entry 0 - NULL mustn't be filled    8 bytes | vector 0
+entry 1 - Kernel CS                 8 bytes | vector 8
+entry 2 - User CS                   8 bytes | vector 16
+entry 3 - Kernel DS                 8 bytes | vector 24
+entry 4 - User DS                   8 bytes | vector 32
 
-entry 5 - TSS                       16 bytes 
-entry 6 - TSS                       (second half)
+entry 5 - TSS                       16 bytes | vector 40
+entry 6 - TSS                       (second half) | vector 48
 */
 
 
@@ -55,11 +57,14 @@ void init_gdt() {
     check_CS = get_cs();
     set_segment(2,0b11111011,0b0110); // User CS
     set_segment(3,0b10010011,0b0100); // Kernel DS
+    check_DS = get_ds();
     set_segment(4,0b11110011,0b0100); // User DS
     //set_TSS(0b10001001,0b0000); // TSS
 
     lgdt(&gdt_reg);
     reload_segments();
+    check_CS = get_cs();
+    check_DS = get_ds();
 
 
     write_better("GDT set up\n");
