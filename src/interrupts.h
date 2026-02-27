@@ -31,12 +31,6 @@ static inline void lidt(idtr_t* ptr) {
     asm volatile("lidt %0"::"m"(*ptr):"memory");
 }
 
-static inline uint16_t get_cs(void) {
-    uint16_t cs;
-    asm volatile("mov %%cs, %0" : "=r"(cs));
-    return cs;
-}
-
 extern void isr_handler_C(stack_frame_t *frame);
 void set_gate(size_t n, uint8_t flags, uint64_t isr_address, uint8_t _ist, uint16_t css);
 void init_interrupts();

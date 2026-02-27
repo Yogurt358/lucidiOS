@@ -19,7 +19,7 @@ struct tss_entry {
     uint16_t iopb;
 } __attribute__((packed));
 
-struct tss_descriptor { 
+struct tss_descriptor { // 16 bytes
     uint16_t limit1;
     uint16_t base1;
     uint8_t base2;
@@ -31,7 +31,7 @@ struct tss_descriptor {
     uint32_t reserved0;
 } __attribute__((packed));
 
-struct gdt_descriptor { // 64 bits
+struct gdt_descriptor { // 8 bytes
     uint16_t limit1;
     uint16_t base1;
     uint8_t base2;
@@ -59,6 +59,26 @@ static inline void ltr() {
 
 static inline void lgdt(gdtr_t* ptr) {
     asm volatile ("lgdt %0"::"m"(*ptr): "memory");
+}
+
+static inline void reload_segments() {
+    asm volatile (
+        // 1. Reload CS using a far return
+        "pushq $0x08\n\t"          // Push the new Kernel CS selector (Entry 1)
+        "leaq 1f(%%rip), %%rax\n\t"// Load the address of the label '1' below
+        "pushq %%rax\n\t"          // Push the return address
+        "lretq\n\t"                // Far return: pops address into RIP, and selector into CS
+
+        // 2. Reload Data Segments
+        "1:\n\t"                   // This is where lretq lands
+        "mov $0x18, %%ax\n\t"      // Load the new Kernel DS selector (Entry 3)
+        "mov %%ax, %%ds\n\t"
+        "mov %%ax, %%es\n\t"
+        "mov %%ax, %%fs\n\t"
+        "mov %%ax, %%gs\n\t"
+        "mov %%ax, %%ss\n\t"
+        ::: "rax", "memory"
+    );
 }
 
 void set_segment(size_t n, uint8_t access, uint8_t flag);
