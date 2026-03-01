@@ -21,12 +21,12 @@ static inline void ud2() {
 }
 
 static inline uint16_t get_cs(void) {
-    uint16_t cs;
+    uint32_t cs;
     asm volatile("mov %%cs, %0" : "=r"(cs));
     return cs;
 }
 static inline uint16_t get_ds(void) {
-    uint16_t ds;
+    uint32_t ds;
     asm volatile("mov %%ds, %0" : "=r"(ds));
     return ds;
 }
