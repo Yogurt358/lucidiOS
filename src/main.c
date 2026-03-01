@@ -78,7 +78,9 @@ void kmain(void) {
 
     volatile int a = 3;
     volatile int b = 0;
-    volatile int c = a/b; //checking that #DE works
+    //volatile int c = a/b; //checking that #DE works
+
+    //ud2 //checking that #UD works
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
