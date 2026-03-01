@@ -41,6 +41,8 @@ struct gdt_descriptor { // 8 bytes
     uint8_t base3;
 } __attribute__((packed));
 
+
+
 struct gdtr {
     uint16_t limit;
     uint64_t base;
@@ -51,6 +53,16 @@ typedef struct gdtr gdtr_t;
 typedef struct tss_entry tss_entry_t;
 typedef struct gdt_descriptor gdt_descriptor_t;
 typedef struct tss_descriptor tss_descriptor_t;
+
+struct master_gdt {
+    gdt_descriptor_t null;      // Entry 0
+    gdt_descriptor_t kernel_cs; // Entry 1
+    gdt_descriptor_t user_cs;   // Entry 2
+    gdt_descriptor_t kernel_ds; // Entry 3
+    gdt_descriptor_t user_ds;   // Entry 4
+    tss_descriptor_t tss;       // Entry 5 & 6 (16 bytes)
+} __attribute__((packed));
+typedef struct master_gdt the_gdt;
 
 
 static inline void ltr() {
