@@ -22,9 +22,13 @@ entry 6 - TSS                       (second half) | vector 48
 
 
 void set_segment(size_t n, uint8_t access, uint8_t flag) {
+    gdt_desc[n].limit1 = 0xFFFF;      // Standard full limit
+    gdt_desc[n].base1 = 0;
+    gdt_desc[n].base2 = 0;
     gdt_desc[n].access_byte = access;
-    gdt_desc[n].flags = flag;
-
+    gdt_desc[n].limit2 = 0xF;         // Part of the 0xFFFFF limit
+    gdt_desc[n].flags = flag;         // 4-bit flags
+    gdt_desc[n].base3 = 0;
 }
 
 void set_TSS(uint8_t access, uint8_t flag) {
@@ -52,19 +56,16 @@ void init_gdt() {
     memset(&gdt_desc,0,sizeof(gdt_desc)); // reserved regions must be 0 or else general protection fault
 
     write_better("setting up GDT\n");
-
-    set_segment(1,0b10011011,0b0110); // Kernel CS
-    check_CS = get_cs();
-    set_segment(2,0b11111011,0b0110); // User CS
-    set_segment(3,0b10010011,0b0100); // Kernel DS
-    check_DS = get_ds();
-    set_segment(4,0b11110011,0b0100); // User DS
+    set_segment(1, 0x9B, 0x0A); // Kernel CS
+    set_segment(2, 0xFB, 0x0A); // User CS
+    set_segment(3, 0x93, 0x0C); // Kernel DS
+    set_segment(4, 0xF3, 0x0C); // User DS
     //set_TSS(0b10001001,0b0000); // TSS
 
     lgdt(&gdt_reg);
     reload_segments();
-    check_CS = get_cs();
-    check_DS = get_ds();
+    check_CS = get_cs(); // needs to be 0x8
+    check_DS = get_ds(); // needs to be 0x18
 
 
     write_better("GDT set up\n");
