@@ -55,9 +55,14 @@ static void hcf(void) {
 // linker script accordingly.
 void kmain(void) {
 
+    uint32_t check_cs = get_cs();
+
     init_serial();
     init_gdt();
     init_interrupts();
+
+    check_cs = get_cs();
+
 
 
     // Ensure the bootloader actually understands our base revision (see spec).

@@ -77,7 +77,7 @@ static inline void reload_segments() {
     asm volatile (
         // 1. Reload CS using a far return
         "pushq $0x08\n\t"          // Push the new Kernel CS selector
-        "leaq 1f(%%rip), %%rax\n\t"// Load the address of the label '1' below
+        "leaq 1f(%%rip), %%rax\n\t"// Load the address next command
         "pushq %%rax\n\t"          // Push the return address
         "lretq\n\t"                // Far return: pops address into RIP, and selector into CS
 

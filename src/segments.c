@@ -2,9 +2,8 @@
 
 volatile uint8_t kernel_stack[8192] __attribute__((aligned(16)));
 
-the_gdt_t a_gdt;
+the_gdt_t a_gdt __attribute__((aligned));
 
-gdt_descriptor_t gdt_desc[5] __attribute__((aligned));
 gdtr_t gdt_reg;
 tss_descriptor_t tss_desc;
 tss_entry_t tss_entry;
