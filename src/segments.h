@@ -54,7 +54,7 @@ typedef struct tss_entry tss_entry_t;
 typedef struct gdt_descriptor gdt_descriptor_t;
 typedef struct tss_descriptor tss_descriptor_t;
 
-struct master_gdt {
+struct the_gdt {
     gdt_descriptor_t null;      // Entry 0
     gdt_descriptor_t kernel_cs; // Entry 1
     gdt_descriptor_t user_cs;   // Entry 2
@@ -62,7 +62,7 @@ struct master_gdt {
     gdt_descriptor_t user_ds;   // Entry 4
     tss_descriptor_t tss;       // Entry 5 & 6 (16 bytes)
 } __attribute__((packed));
-typedef struct master_gdt the_gdt;
+typedef struct the_gdt the_gdt_t;
 
 
 static inline void ltr() {
