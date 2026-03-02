@@ -54,14 +54,11 @@ static void hcf(void) {
 // If renaming kmain() to something else, make sure to change the
 // linker script accordingly.
 void kmain(void) {
-    volatile uint32_t check_tr; // just checking that TSS works | should be 0x28
-    check_tr = str();
 
     init_serial();
     init_gdt();
     init_interrupts();
 
-    check_tr = str();
 
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
@@ -86,7 +83,7 @@ void kmain(void) {
     volatile int c = a/b; //checking that #DE works
     */
 
-    //ud2 //checking that #UD works
+    //ud2(); //checking that #UD works
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");

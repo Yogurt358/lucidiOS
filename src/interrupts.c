@@ -20,28 +20,34 @@ extern void isr_handler_C(stack_frame_t *frame) {
             write_better("\n#DE\n");
             for(;;);
             break;
+
         case(1):
             write_better("\n#DB");
             for(;;);
             break;
+
         case(6):
             write_better("\n#UD\n");
             for(;;);
             break;
+
         case(8):
             write_better("\n#DF\n");
             for(;;);
             break;
+
         case(13):
             write_better("\n#GP\n");
             __asm__ volatile("mov %%cr2, %0" : "=r"(faulting_address)::);
             for(;;);
             break;
+
         case(14):
             write_better("\n#PF");
             __asm__ volatile("mov %%cr2, %0" : "=r"(faulting_address)::);
             for(;;);
             break;
+
         default:
             break;
     }
@@ -72,7 +78,7 @@ void init_interrupts() {
     set_gate(13, 0x8E, (uint64_t)isr13, 0, current_cs); // #GP gate
     set_gate(14, 0x8E, (uint64_t)isr14, 0, current_cs); // #PF gate
 
-    write_better("IDT set up\n");
+    write_better("IDT set up\n\n");
 
 
     idt_reg.size = (sizeof(idt_entry_t) * 256) - 1;

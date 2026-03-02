@@ -76,14 +76,14 @@ static inline void lgdt(gdtr_t* ptr) {
 static inline void reload_segments() {
     asm volatile (
         // 1. Reload CS using a far return
-        "pushq $0x08\n\t"          // Push the new Kernel CS selector (Entry 1)
+        "pushq $0x08\n\t"          // Push the new Kernel CS selector
         "leaq 1f(%%rip), %%rax\n\t"// Load the address of the label '1' below
         "pushq %%rax\n\t"          // Push the return address
         "lretq\n\t"                // Far return: pops address into RIP, and selector into CS
 
         // 2. Reload Data Segments
-        "1:\n\t"                   // This is where lretq lands
-        "mov $0x18, %%ax\n\t"      // Load the new Kernel DS selector (Entry 3)
+        "1:\n\t"                   // lretq
+        "mov $0x18, %%ax\n\t"      // load new Kernel DS
         "mov %%ax, %%ds\n\t"
         "mov %%ax, %%es\n\t"
         "mov %%ax, %%fs\n\t"
