@@ -16,8 +16,12 @@ static inline uint8_t inb(uint16_t port) {
     return ret;
 }
 
-static inline void ud2() {
+static inline void ud2(void) {
     asm volatile("ud2":::);
+}
+
+static inline void ud0() {
+    asm volatile("ud0":::);
 }
 
 static inline uint32_t get_cs(void) {
