@@ -23,6 +23,12 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST_ID,
+    .revision = 0
+};
+
 
 // Finally, define the start and end markers for the Limine requests.
 // These can also be moved anywhere, to any .c file, as seen fit.
@@ -72,9 +78,15 @@ void kmain(void) {
        hcf();
     }
 
+    if (hhdm_request.response == NULL) {
+        write_better("bruh HHDM request ain't working\n");
+        hcf();
+    }
+
     
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+    volatile uint64_t half_high = hhdm_request.response->offset;
 
     draw_sentence(framebuffer, "Check 1");
 
@@ -84,7 +96,9 @@ void kmain(void) {
     volatile int c = a/b; //checking that #DE works
     */
 
-    ud2(); //checking that #UD works
+    //ud2(); //checking that #UD works
+
+    //check_LAPIC();
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");

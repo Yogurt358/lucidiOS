@@ -86,3 +86,8 @@ void init_interrupts() {
 
     lidt(&idt_reg);
 }
+
+void init_APIC(uint64_t hhdm_offset) {
+    //setting up LVT
+    
+}

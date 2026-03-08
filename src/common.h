@@ -40,7 +40,15 @@ static inline uint32_t str(void) {
     asm volatile("str %0" : "=r"(tr)::);
     return tr;
 }
-
+static inline void check_LAPIC(void) {
+    uint32_t edx;
+    asm volatile(
+        "cpuid\n\t"
+        :"=d"(edx)
+        :"a"(1)
+        :"ebx", "ecx"
+    );
+}
 
 
 void *memcpy(void *restrict dest, const void *restrict src, size_t n);
