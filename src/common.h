@@ -50,6 +50,28 @@ static inline void check_LAPIC(void) {
     );
 }
 
+static inline bool check_ARAT(void) {
+    uint32_t eax; 
+    asm volatile(
+        "cpuid\n\t"
+        :"=a"(eax)
+        :"a"(6)
+        :"ebx", "ecx", "edx"
+    );
+    return ((eax>>2)&0b1);
+}
+
+static inline uint32_t check_CPUID(void) {
+    uint32_t eax; 
+    asm volatile(
+        "cpuid\n\t"
+        :"=a"(eax)
+        :"a"(0)
+        :"ebx", "ecx", "edx"
+    );
+    return eax;
+}
+
 
 void *memcpy(void *restrict dest, const void *restrict src, size_t n);
 void *memset(void *s, int c, size_t n);

@@ -44,7 +44,7 @@ extern isr_handler_C
 global isr%1
 isr%1:
 	push 0 ; no error code
-	push %1 ; vector number
+	push %1 ; vector
 	lea rax, [rel isr_common]
 	jmp rax
 %endmacro
@@ -53,9 +53,18 @@ isr%1:
 global isr%1
 isr%1:
 	; CPU already pushed error code
-	push %1 ; vector number
+	push %1 ; vector
     lea rax, [rel isr_common]
 	jmp rax
+%endmacro
+
+%macro ISR_HARD 2
+global isr%1
+isr%1:
+    push %2 ; instead of error, send in hhdm_offset 
+    push %1 ; vector
+    lea rax, [rel isr_common]
+    jmp rax
 %endmacro
 
 section .data
@@ -65,12 +74,8 @@ section .data
 
 ;---------------------variabels---------------------;
 section .text
-;---------------------functions---------------------;
 
-
-
-;---------------------functions---------------------;
-
+; Exceptions
 ISR_NOERR 0
 ISR_NOERR 1
 ISR_NOERR 6
@@ -78,13 +83,16 @@ ISR_ERR 8
 ISR_ERR 13
 ISR_ERR 14
 
+; asymetric interrupts
+ISR_NOERR 32
+
+
 isr_common:
 
 
 PUSH_ALL
 
 mov rdi, rsp ; pass pointer to stack
-
 call isr_handler_C
 
 PULL_ALL

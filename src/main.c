@@ -84,9 +84,11 @@ void kmain(void) {
     }
 
     
-    // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    volatile uint64_t half_high = hhdm_request.response->offset;
+    volatile uint64_t half_high = hhdm_request.response->offset; // get the HHDM offset
+
+    init_APIC(half_high);
+    asm volatile ("sti");
 
     draw_sentence(framebuffer, "Check 1");
 
@@ -99,6 +101,16 @@ void kmain(void) {
     //ud2(); //checking that #UD works
 
     //check_LAPIC();
+
+    /*
+    if(check_CPUID() >= 0x15) {
+        write_better("can check PIT frequency directly\n");
+    }
+    else{
+        write_better("bruhhurb\n");
+    }
+    */
+   
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
