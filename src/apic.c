@@ -1,7 +1,6 @@
 
 #include "apic.h"
 
-
 void init_APIC_timer(uint64_t hhdm_offset) {
 
     uint32_t timer = 0;
@@ -23,22 +22,7 @@ void init_APIC_timer(uint64_t hhdm_offset) {
     //setting up current count register
     Initial_Count_R(hhdm_offset) = 0xFFFFFFFF;
 
-    //setting up PIT
-    outb(0x43, 0x30); 
-    outb(0x40, 0x2E); 
-    outb(0x40, 0x9B); 
-
-    while(1) {
-    outb(0x43, 0x00);
-    uint8_t low = inb(0x40);
-    uint8_t high = inb(0x40);
-    if ((low | (high << 8)) == 0) break;
-    }
-
-    uint32_t final_apic_count = Current_Count_R(hhdm_offset);
-    uint32_t ticks_per_10ms = 0xFFFFFFFF - final_apic_count;
-    Initial_Count_R(hhdm_offset) = 0;
-    Initial_Count_R(hhdm_offset) = ticks_per_10ms;
+    
     
 }
 
