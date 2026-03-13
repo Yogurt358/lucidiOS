@@ -1,5 +1,6 @@
 #include "fb.h"
 #include "interrupts.h"
+#include "apic.h"
 #include "segments.h"
 
 
@@ -87,8 +88,7 @@ void kmain(void) {
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     volatile uint64_t half_high = hhdm_request.response->offset; // get the HHDM offset
 
-    init_APIC(half_high);
-    asm volatile ("sti");
+    //init_APIC(half_high);
 
     draw_sentence(framebuffer, "Check 1");
 
@@ -99,18 +99,28 @@ void kmain(void) {
     */
 
     //ud2(); //checking that #UD works
-
-    //check_LAPIC();
-
     /*
-    if(check_CPUID() >= 0x15) {
-        write_better("can check PIT frequency directly\n");
+    if(base_MSR()){
+        write_better("good\n");
     }
-    else{
-        write_better("bruhhurb\n");
+    else {
+        write_better("no good\n");
     }
     */
-   
+
+    /*
+    uint32_t max_leaf = get_max_extended_leaf();
+    if (max_leaf >= 0x80000008) {
+        write_better("can support");
+    }
+    */
+
+    //what(); // after calculation, APIC is from 12 to 39
+
+    uint64_t apic_phys = get_lapic_base();
+    if (apic_phys == 0xFEE00000) {
+        write_better("LAPIC is at the standard address!\n");
+    }
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");

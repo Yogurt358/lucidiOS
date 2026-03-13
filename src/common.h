@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "limine.h"
 
+#define IA32_APIC_BASE_MSR 0x1B
 #define COM1 0x3F8 // I/O port of Serial
 
 static inline void outb(uint16_t port, uint8_t value) {
@@ -40,7 +41,9 @@ static inline uint32_t str(void) {
     asm volatile("str %0" : "=r"(tr)::);
     return tr;
 }
-static inline void check_LAPIC(void) {
+
+/*
+static inline bool is_LAPIC(void) {
     uint32_t edx;
     asm volatile(
         "cpuid\n\t"
@@ -48,6 +51,7 @@ static inline void check_LAPIC(void) {
         :"a"(1)
         :"ebx", "ecx"
     );
+    return ((edx>>9)&0b1);
 }
 
 static inline bool check_ARAT(void) {
@@ -72,6 +76,49 @@ static inline uint32_t check_CPUID(void) {
     return eax;
 }
 
+static inline uint8_t CPUID_shish(void) {
+    uint32_t eax, ebx, ecx, edx;
+    asm volatile(
+        "cpuid\n\t"
+        :"=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+        :"a"(1)
+    );
+    return (uint8_t)(ebx>>24);
+}
+
+static inline uint32_t get_max_extended_leaf(void) {
+    uint32_t eax;
+    asm volatile("cpuid" : "=a"(eax) : "a"(0x80000000) : "ebx", "ecx", "edx");
+    return eax;
+}
+
+static inline uint8_t what(void) {
+    uint32_t eax;
+    asm volatile(
+        "cpuid\n\t"
+        :"=a"(eax)
+        :"a"(0x80000008)
+        :"ecx", "ebx", "edx"
+    );
+    return (uint8_t)(eax);
+}
+
+*/
+
+static inline uint64_t get_lapic_base(void) {
+    uint32_t eax, edx;
+    asm volatile(
+        "rdmsr"
+        : "=a"(eax), "=d"(edx)
+        : "c"(IA32_APIC_BASE_MSR)
+    );
+
+    uint64_t msr_full = ((uint64_t)edx << 32) | eax;
+
+    uint64_t mask = 0x000000FFFFFFF000; 
+
+    return msr_full & mask;
+}
 
 void *memcpy(void *restrict dest, const void *restrict src, size_t n);
 void *memset(void *s, int c, size_t n);

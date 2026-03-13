@@ -22,7 +22,7 @@ extern void isr_handler_C(stack_frame_t *frame, uint64_t hhdm_offset) {
             break;
 
         case(1):
-            write_better("\n#DB");
+            write_better("\n#DB\n");
             for(;;);
             break;
 
@@ -40,16 +40,16 @@ extern void isr_handler_C(stack_frame_t *frame, uint64_t hhdm_offset) {
             write_better("\n#GP\n");
             asm volatile("mov %%cr2, %0" : "=r"(faulting_address)::);
             for(;;);
-            break;
+            break; 
 
         case(14):
-            write_better("\n#PF");
-            asm volatile("mov %%cr2, %0" : "=r"(faulting_address)::);
+            write_better("\n#PF\n");
+            asm volatile("mov %%cr2, %0" : "=a"(faulting_address)::);
             for(;;);
             break;
 
         case(32):
-            write_better("\n#APIC timer");
+            write_better("\n#APIC timer\n");
             EOI(hhdm_offset) = 0;
             break;
 
