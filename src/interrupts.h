@@ -42,8 +42,7 @@ static inline void lidt(idtr_t* ptr) {
     asm volatile("lidt %0"::"m"(*ptr):"memory");
 }
 
-extern void isr_handler_C(stack_frame_t *frame, uint64_t hhdm_offset);
+extern void isr_handler_C(stack_frame_t *frame);
 void set_gate(size_t n, uint8_t flags, uint64_t isr_address, uint8_t _ist, uint16_t css);
 void init_interrupts();
-void init_APIC(uint64_t hhdm_offset);
-void init_APIC_timer(uint64_t hhdm_offset);
+

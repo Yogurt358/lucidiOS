@@ -32,7 +32,7 @@ void init_APIC_timer(uint64_t hhdm_offset) {
         uint8_t lo = inb(0x40);
         uint8_t hi = inb(0x40);
         uint16_t count = (hi << 8) | lo;
-        if (count > last_count) break; // It wrapped around! 10ms passed.
+        if (count > last_count) break; // 10ms passed.
         last_count = count;
     }
 
@@ -49,8 +49,8 @@ void init_APIC(uint64_t hhdm_offset) {
 
     SVR(hhdm_offset) |= (0b1<<8); 
 
-    write_better("setting up LAPIC Timer");
+    write_better("\nsetting up LAPIC Timer\n");
     init_APIC_timer(hhdm_offset);
-    write_better("LAPIC Timer set up");
+    write_better("\nLAPIC Timer set up\n");
 
 }

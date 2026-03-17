@@ -12,7 +12,7 @@ idtr_t idt_reg;
 idt_entry_t i_entry[256] __attribute__((aligned(16))); // removed volatile because of warning with memset. will figure it out
 uint64_t faulting_address;
 
-extern void isr_handler_C(stack_frame_t *frame, uint64_t hhdm_offset) {
+extern void isr_handler_C(stack_frame_t *frame) {
     size_t temp = frame->vector;
 
     switch(temp) {
@@ -38,7 +38,7 @@ extern void isr_handler_C(stack_frame_t *frame, uint64_t hhdm_offset) {
 
         case(13):
             write_better("\n#GP\n");
-            asm volatile("mov %%cr2, %0" : "=r"(faulting_address)::);
+            asm volatile("mov %0, %%rax" ::"r"(frame->code):"rax");
             for(;;);
             break; 
 
@@ -50,10 +50,12 @@ extern void isr_handler_C(stack_frame_t *frame, uint64_t hhdm_offset) {
 
         case(32):
             write_better("\n#APIC timer\n");
+            uint64_t hhdm_offset = (uint64_t)(frame->code);
             EOI(hhdm_offset) = 0;
             break;
 
         default:
+            write_better("\nNo valid interrupt given\n");
             break;
     }
 }
@@ -82,6 +84,8 @@ void init_interrupts() {
     set_gate(8, 0x8E, (uint64_t)isr8, 0, current_cs); // #DF gate
     set_gate(13, 0x8E, (uint64_t)isr13, 0, current_cs); // #GP gate
     set_gate(14, 0x8E, (uint64_t)isr14, 0, current_cs); // #PF gate
+
+    set_gate(32, 0x8E, (uint64_t)isr32, 0, current_cs); // APIC timer
 
     write_better("IDT set up\n\n");
 

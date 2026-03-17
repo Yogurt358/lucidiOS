@@ -84,7 +84,7 @@ ISR_ERR 13
 ISR_ERR 14
 
 ; asymetric interrupts
-ISR_NOERR 32
+ISR_HARD 32, 0xffff800000000000
 
 
 isr_common:
