@@ -107,7 +107,7 @@ void kmain(void) {
     init_pmm(memmap_request.response);
     map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
 
-    init_APIC();
+    init_LAPIC();
     asm volatile("sti");
 
     draw_sentence(framebuffer, "Check 1");
