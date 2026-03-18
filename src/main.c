@@ -100,14 +100,14 @@ void kmain(void) {
 
     
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    uint64_t half_high = hhdm_request.response->offset; 
+    g_hhdm_offset = hhdm_request.response->offset; 
     struct limine_memmap_entry **map = memmap_request.response->entries;
     
 
     init_pmm(memmap_request.response);
-    map_page(half_high + 0xFEE00000, 0xFEE00000, 0x13, half_high);
+    map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
 
-    init_APIC(half_high);
+    init_APIC();
     asm volatile("sti");
 
     draw_sentence(framebuffer, "Check 1");

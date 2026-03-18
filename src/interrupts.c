@@ -5,8 +5,11 @@ extern void isr6();
 extern void isr8();
 extern void isr13();
 extern void isr14();
-extern void isr32();
 
+extern void isr32();
+extern void isr33();
+
+extern uint64_t g_hhdm_offset;
 
 idtr_t idt_reg;
 idt_entry_t i_entry[256] __attribute__((aligned(16))); // removed volatile because of warning with memset. will figure it out
@@ -38,7 +41,7 @@ extern void isr_handler_C(stack_frame_t *frame) {
 
         case(13):
             write_better("\n#GP\n");
-            asm volatile("mov %0, %%rax" ::"r"(frame->code):"rax");
+            asm volatile("movq %0, %%rax" ::"r"(frame->code):"rax");
             for(;;);
             break; 
 
@@ -49,9 +52,16 @@ extern void isr_handler_C(stack_frame_t *frame) {
             break;
 
         case(32):
+            write_better("\n#APIC error\n");
+            ESR(g_hhdm_offset) = 0;
+            uint8_t error_flag = ESR(g_hhdm_offset);
+            asm volatile("movzbl %0, %%eax" ::"r"(error_flag):"rax");
+            EOI(g_hhdm_offset) = 0;
+            break;
+    
+        case(33):
             write_better("\n#APIC timer\n");
-            uint64_t hhdm_offset = (uint64_t)(frame->code);
-            EOI(hhdm_offset) = 0;
+            EOI(g_hhdm_offset) = 0;
             break;
 
         default:
@@ -85,7 +95,8 @@ void init_interrupts() {
     set_gate(13, 0x8E, (uint64_t)isr13, 0, current_cs); // #GP gate
     set_gate(14, 0x8E, (uint64_t)isr14, 0, current_cs); // #PF gate
 
-    set_gate(32, 0x8E, (uint64_t)isr32, 0, current_cs); // APIC timer
+    set_gate(32, 0x8E, (uint64_t)isr32, 0, current_cs);
+    set_gate(33, 0x8E, (uint64_t)isr33, 0, current_cs); // APIC timer
 
     write_better("IDT set up\n\n");
 

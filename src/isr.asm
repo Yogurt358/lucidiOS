@@ -58,10 +58,10 @@ isr%1:
 	jmp rax
 %endmacro
 
-%macro ISR_HARD 2
+%macro ISR_HARD 1
 global isr%1
 isr%1:
-    push %2 ; instead of error, send in hhdm_offset 
+    push 0 ; no error code 
     push %1 ; vector
     lea rax, [rel isr_common]
     jmp rax
@@ -84,7 +84,8 @@ ISR_ERR 13
 ISR_ERR 14
 
 ; asymetric interrupts
-ISR_HARD 32, 0xffff800000000000
+ISR_HARD 32
+ISR_HARD 33
 
 
 isr_common:

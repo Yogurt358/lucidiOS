@@ -1,16 +1,8 @@
 #pragma once
 #include "common.h"
 
-#define IA32_APIC_BASE_MSR 0x1B
-#define IA32_APIC_BASE_MSR_BSP 0x100 
-#define IA32_APIC_BASE_MSR_ENABLE 0x800
-
-//APIC_timer registers
-#define LVT_timer(high)                 (*(volatile uint32_t*)((high) + 0xFEE00320))
-#define Initial_Count_R(high)           (*(volatile uint32_t*)((high) + 0xFEE00380))
-#define Current_Count_R(high)           (*(volatile uint32_t*)((high) + 0xFEE00390))
-#define Divide_Configuration_R(high)    (*(volatile uint32_t*)((high) + 0xFEE003E0))
 #define EOI(high)                       (*(volatile uint32_t*)((high) + 0xFEE000B0))
+#define ESR(high)                       (*(volatile uint32_t*)((high) + 0xFEE00280))
 
 struct idt_entry {
    uint16_t offset1;
