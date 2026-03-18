@@ -59,7 +59,7 @@ void disable_pic(void) {
     outb(0xA1, 0xFF);
 }
 
-void init_APIC(void) {
+void init_LAPIC(void) {
 
     SVR(g_hhdm_offset) |= (0b1<<8); 
 

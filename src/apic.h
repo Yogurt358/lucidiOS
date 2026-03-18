@@ -23,8 +23,7 @@
 #define SVR(high)                       (*(volatile uint32_t*)((high) + 0xFEE000F0))
 
 
-
-void init_APIC(void);
+void init_LAPIC(void);
 void init_APIC_timer(void);
 void init_APIC_error(void);
 void disable_pic(void);
