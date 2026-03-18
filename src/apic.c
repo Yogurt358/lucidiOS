@@ -80,7 +80,9 @@ void init_LAPIC(void) {
     LINT1(g_hhdm_offset) |= (0b100<<8); // NMI
     write_better("\nthey set\n");
 
-    TPR(g_hhdm_offset) = 0;
+    //TPR(g_hhdm_offset) = 0;
+    uint64_t tpr_value = 0
+    asm volatile("mov %0, %%cr8"::"r"(tpr_value):"memory");
 
 }
 
