@@ -101,14 +101,13 @@ void kmain(void) {
     
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     g_hhdm_offset = hhdm_request.response->offset; 
-    struct limine_memmap_entry **map = memmap_request.response->entries;
     
 
     init_pmm(memmap_request.response);
     map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
 
     init_LAPIC();
-    asm volatile("sti");
+    //asm volatile("sti");
 
     draw_sentence(framebuffer, "Check 1");
 
@@ -139,6 +138,11 @@ void kmain(void) {
         write_better("LAPIC is at the standard address!\n");
     }
     */
+    
+    uint32_t ecx;
+    asm volatile("cpuid":"=c"(ecx):"a"(1):"ebx", "edx");
+    if (ecx>>21&0b1) write_better("there is x2APIC"); // there's no x2APIC
+    //*/
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
