@@ -2,6 +2,13 @@
 #include "apic.h"
 
 extern uint64_t g_hhdm_offset;
+extern uint64_t *rsdp_pointer;
+extern uint64_t ioapic_base;
+
+rsdp_t *apic_rsdp;
+acpi_header_t *apic_rsdt_header;
+rsdt_t *apic_rsdt;
+madt_t *the_madt;
 
 void init_APIC_timer(void) {
 
@@ -9,14 +16,12 @@ void init_APIC_timer(void) {
     uint32_t div_config = 0;
 
     //setting up LVT_timer
-    memset(&timer, 0, 4);
     timer |= 0x21;
     timer |= (0b0<<16); // yeah it's redundant but I keep this for consistency sake
     timer |= (0b01<<17);
     LVT_timer(g_hhdm_offset) = timer;
 
     //setting up initial count register
-    memset(&div_config, 0, 4);
     div_config |= 0b11;
     div_config |= (0b0<<3);
     Divide_Configuration_R(g_hhdm_offset) = div_config;
@@ -48,7 +53,7 @@ void init_APIC_timer(void) {
 }
 
 void init_APIC_error(void) {
-    memset(&LVT_error(g_hhdm_offset), 0, 4);
+    LVT_error(g_hhdm_offset) = 0;
     LVT_error(g_hhdm_offset) |= 0x20;
 }
 
@@ -72,11 +77,9 @@ void init_LAPIC(void) {
     write_better("\nLAPIC Error set up\n");
 
     write_better("\nsetting up LINT0 and LINT1\n");
-    memset(&LINT0(g_hhdm_offset), 0, 4);
     LINT0(g_hhdm_offset) |= (0b1<<16); // mask
     disable_pic();
     
-    memset(&LINT1(g_hhdm_offset), 0, 4);
     LINT1(g_hhdm_offset) |= (0b100<<8); // NMI
     write_better("\nthey set\n");
 
@@ -86,3 +89,71 @@ void init_LAPIC(void) {
 
 }
 
+void check_RSDP(void) {
+    if(apic_rsdp->revision == 2) {
+        write_better("\nXSDT\n");
+    }
+    else if(apic_rsdp->revision == 0) {
+        write_better("\nRSDT\n");
+    }
+    else {
+        write_better("\nno good\n");
+    }
+}
+
+void* findAPIC(void) {
+    size_t entries = (apic_rsdt->h.length - sizeof(acpi_header_t)) / 4;
+
+    for (size_t i = 0; i < entries; i++) {
+        uint32_t phys_addr = apic_rsdt->pointerToOtherSDT[i];
+        acpi_header_t *h = (acpi_header_t *)((uint64_t)phys_addr + g_hhdm_offset);
+
+        if (memcmp(h->signature, "APIC", 4) == 0) { // MADT entry
+            return (void *)h;
+        }
+    }
+    return NULL;
+}
+
+uint64_t madt_parsing(void) {
+    return 123; // dummy return until proper logic is implemented;
+}
+
+void init_IOAPIC(void) {
+    apic_rsdp = (rsdp_t*)(rsdp_pointer);
+    check_RSDP(); 
+
+    apic_rsdt = (rsdt_t*)(apic_rsdp->rsdt_Address + g_hhdm_offset);
+    
+    the_madt = (madt_t*)(findAPIC()); 
+
+    if (the_madt == NULL) {
+        write_better("\nno MADT\n");
+        return;
+    }
+
+    write_better("\nMADT found, finding IOAPIC\n");
+    // need to put all of this in a different function
+
+    uint8_t *ptr = (uint8_t*)the_madt + 44; //skips acpi_header and 2 uint32_t flags
+    uint8_t *end = (uint8_t*)the_madt + the_madt->h.length;
+
+    while (ptr < end) {
+        uint8_t type = ptr[0];
+        uint8_t length = ptr[1];
+
+        if (type == 1) { 
+            IOAPIC_t *ioapic = (IOAPIC_t *)ptr;
+            ioapic_base = (uint64_t)ioapic->ioapic_address + g_hhdm_offset;
+            write_better("Found I/O APIC\n");
+            break; 
+        }
+        ptr += length; // next entry
+    }
+    asm volatile ("movq %0, %%rax"::"r"(ioapic_base):"rax"); // debug address
+
+    // need to put all of this in a different function
+
+    
+
+}

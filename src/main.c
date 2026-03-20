@@ -18,24 +18,26 @@ static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
 // be made volatile or equivalent, _and_ they should be accessed at least
 // once or marked as used with the "used" attribute as done here.
 
-__attribute__((used, section(".limine_requests")))
+__attribute__((used, section(".limine_requests")))                                  // framebuffer
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
     .revision = 0
 };
-
-__attribute__((used, section(".limine_requests")))
+__attribute__((used, section(".limine_requests")))                                 // HHDM offset
 static volatile struct limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST_ID,
     .revision = 0
 };
-
-__attribute__((used, section(".limine_requests")))
+__attribute__((used, section(".limine_requests")))                                 // memory map
 static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST_ID,
     .revision = 0
 };
-
+__attribute__((used, section(".limine_requests")))                                 // rsdp
+static volatile struct limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST_ID,
+    .revision = 0
+};
 
 // Finally, define the start and end markers for the Limine requests.
 // These can also be moved anywhere, to any .c file, as seen fit.
@@ -62,6 +64,8 @@ static void hcf(void) {
 }
 
 uint64_t g_hhdm_offset = 0;
+uint64_t *rsdp_pointer = 0;
+uint64_t ioapic_base = 0;
 
 // The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the
@@ -98,10 +102,16 @@ void kmain(void) {
         hcf();
     }
 
+    if (rsdp_request.response == NULL
+    || rsdp_request.response->address == NULL) {
+        write_better("\nrsdp ain't working\n");
+        hcf();
+    }
+
     
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     g_hhdm_offset = hhdm_request.response->offset; 
-    
+    rsdp_pointer = rsdp_request.response->address; 
 
     init_pmm(memmap_request.response);
     map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
@@ -137,12 +147,14 @@ void kmain(void) {
     if (apic_phys == 0xFEE00000) {
         write_better("LAPIC is at the standard address!\n");
     }
-    */
+    
     
     uint32_t ecx;
     asm volatile("cpuid":"=c"(ecx):"a"(1):"ebx", "edx");
     if (ecx>>21&0b1) write_better("there is x2APIC"); // there's no x2APIC
     //*/
+
+    init_IOAPIC();
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
