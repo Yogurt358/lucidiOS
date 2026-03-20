@@ -83,9 +83,11 @@ ISR_ERR 8
 ISR_ERR 13
 ISR_ERR 14
 
-; asymetric interrupts
+; asymetric interrupts (hardware interrupts)
 ISR_HARD 32
 ISR_HARD 33
+
+ISR_HARD 50
 
 
 isr_common:

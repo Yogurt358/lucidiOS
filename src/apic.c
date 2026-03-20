@@ -17,7 +17,7 @@ void init_APIC_timer(void) {
 
     //setting up LVT_timer
     timer |= 0x21;
-    timer |= (0b0<<16); // yeah it's redundant but I keep this for consistency sake
+    timer |= (0b0<<16); // mask bit
     timer |= (0b01<<17);
     LVT_timer(g_hhdm_offset) = timer;
 
@@ -115,14 +115,25 @@ void* findAPIC(void) {
     return NULL;
 }
 
-uint64_t madt_parsing(void) {
-    return 123; // dummy return until proper logic is implemented;
+void set_IRQ(size_t n, uint8_t vector) {
+    uint32_t temp = 0;
+    // setting bits 0 - 31
+    temp = vector;
+    // delivery mode already set (fixed)
+    // destination mode physical for now (system ain't an SMP yet)
+    // high polarity
+    IOREGSEL(ioapic_base) = IOAPICREDTBL(n);
+    IOWIN(ioapic_base) = temp;
+
+    //setting bits 32-63
+    IOREGSEL(ioapic_base) = IOAPICREDTBL(n)+1;
+    IOWIN(ioapic_base) |= (0b0000<<24); // first LAPIC id, yeah useless I know
 }
 
-void init_IOAPIC(void) {
-    apic_rsdp = (rsdp_t*)(rsdp_pointer);
-    check_RSDP(); 
+void madt_parsing(void) {
+    //check_RSDP(); // got RSDP
 
+    apic_rsdp = (rsdp_t*)(rsdp_pointer);
     apic_rsdt = (rsdt_t*)(apic_rsdp->rsdt_Address + g_hhdm_offset);
     
     the_madt = (madt_t*)(findAPIC()); 
@@ -131,9 +142,6 @@ void init_IOAPIC(void) {
         write_better("\nno MADT\n");
         return;
     }
-
-    write_better("\nMADT found, finding IOAPIC\n");
-    // need to put all of this in a different function
 
     uint8_t *ptr = (uint8_t*)the_madt + 44; //skips acpi_header and 2 uint32_t flags
     uint8_t *end = (uint8_t*)the_madt + the_madt->h.length;
@@ -151,9 +159,13 @@ void init_IOAPIC(void) {
         ptr += length; // next entry
     }
     asm volatile ("movq %0, %%rax"::"r"(ioapic_base):"rax"); // debug address
+}
 
-    // need to put all of this in a different function
 
-    
+void init_IOAPIC(void) {
+
+    write_better("\nMADT found, finding IOAPIC\n");
+    set_IRQ(1, 0x32); // set the keyboard up
 
 }
+

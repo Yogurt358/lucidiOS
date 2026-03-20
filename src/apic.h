@@ -17,10 +17,12 @@
 #define ESR(high)                       (*(volatile uint32_t*)((high) + 0xFEE00280))
 
 #define TPR(high)                       (*(volatile uint32_t*)((high) + 0xFEE00080))
-
 #define EOI(high)                       (*(volatile uint32_t*)((high) + 0xFEE000B0))
-
 #define SVR(high)                       (*(volatile uint32_t*)((high) + 0xFEE000F0))
+
+#define IOREGSEL(base)                  (*(volatile uint32_t*)((base)))
+#define IOWIN(base)                     (*(volatile uint32_t*)((base) + 0x10))
+#define IOAPICREDTBL(n)                 (0x10 + 2 * n)
 
 // data types taken from OSdev (altered by me)
 struct rsdp{ 
@@ -88,4 +90,5 @@ void disable_pic(void);
 void init_IOAPIC(void);
 void check_RSDP(void);
 void* findAPIC(void);
-uint64_t madt_parsing(void);
+void madt_parsing(void);
+void set_IRQ(size_t n, uint8_t vector);

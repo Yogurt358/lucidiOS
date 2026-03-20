@@ -9,6 +9,8 @@ extern void isr14();
 extern void isr32();
 extern void isr33();
 
+extern void isr50();
+
 extern uint64_t g_hhdm_offset;
 
 idtr_t idt_reg;
@@ -63,6 +65,12 @@ extern void isr_handler_C(stack_frame_t *frame) {
             write_better("\n#APIC timer\n");
             EOI(g_hhdm_offset) = 0;
             break;
+        
+        case(50):
+            uint8_t scancode = inb(0x60);
+            write_better("\n#I/O APIC keyboard\n");
+            EOI(g_hhdm_offset) = 0;
+            break;
 
         default:
             write_better("\nNo valid interrupt given\n");
@@ -95,8 +103,10 @@ void init_interrupts() {
     set_gate(13, 0x8E, (uint64_t)isr13, 0, current_cs); // #GP gate
     set_gate(14, 0x8E, (uint64_t)isr14, 0, current_cs); // #PF gate
 
-    set_gate(32, 0x8E, (uint64_t)isr32, 0, current_cs);
+    set_gate(32, 0x8E, (uint64_t)isr32, 0, current_cs); // APIC error
     set_gate(33, 0x8E, (uint64_t)isr33, 0, current_cs); // APIC timer
+
+    set_gate(50, 0x8E, (uint64_t)isr50, 0, current_cs); // keyboard
 
     write_better("IDT set up\n\n");
 

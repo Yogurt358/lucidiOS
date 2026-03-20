@@ -113,51 +113,23 @@ void kmain(void) {
     g_hhdm_offset = hhdm_request.response->offset; 
     rsdp_pointer = rsdp_request.response->address; 
 
+    madt_parsing();
+
     init_pmm(memmap_request.response);
     map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
+    map_page(ioapic_base, ioapic_base - g_hhdm_offset, 0x13, g_hhdm_offset);
 
     init_LAPIC();
-    //asm volatile("sti");
+    init_IOAPIC();
+    while (inb(0x64) & 1) {
+        inb(0x60);
+    }
+    asm volatile("sti");
 
     draw_sentence(framebuffer, "Check 1");
 
-    /*
-    volatile int a = 3;
-    volatile int b = 0;
-    volatile int c = a/b; //checking that #DE works
-    
-
-    //ud2(); //checking that #UD works
-    
-    if(base_MSR()){
-        write_better("good\n");
-    }
-    else {
-        write_better("no good\n");
-    }
-    
-    uint32_t max_leaf = get_max_extended_leaf();
-    if (max_leaf >= 0x80000008) {
-        write_better("can support");
-    }
-    
-    //what(); // after calculation, APIC is from 12 to 39
-
-    uint64_t apic_phys = get_lapic_base();
-    if (apic_phys == 0xFEE00000) {
-        write_better("LAPIC is at the standard address!\n");
-    }
-    
-    
-    uint32_t ecx;
-    asm volatile("cpuid":"=c"(ecx):"a"(1):"ebx", "edx");
-    if (ecx>>21&0b1) write_better("there is x2APIC"); // there's no x2APIC
-    //*/
-
-    init_IOAPIC();
-
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
-
+    asm volatile("int $0x32");
     hcf();
 }
