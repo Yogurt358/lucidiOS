@@ -1,7 +1,7 @@
 
 
 
-Greetings to all. This is my OS personal project. LucidiOS is an OS that provide the use with a bash-inspired terminal, a FAT32 filesystem and a text editor (similar to the GNU nano). the kernel will have fault interrupts and IRQ interrupts, higher half and lower half virtual memory paging, DMA for file uploading, and 64 bit long mode. 
+Greetings to all. This is my OS personal project. LucidiOS is an OS that provides the user with a bash-inspired terminal, a FAT32 filesystem and a text editor (similar to the GNU nano). the kernel will have fault interrupts and IRQ interrupts, higher half and lower half virtual memory paging, DMA for file uploading, and 64 bit long mode. 
 
 Tools I am using:
 * Limine bootloader
