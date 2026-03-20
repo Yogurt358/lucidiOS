@@ -16,7 +16,14 @@ GNUmakefile commands (make run requires QEMU):
 * make run - compiles and links all the files for a kernel, then runs it in QEMU
 
 Current Progress:
-As of 27th of Feb, LucidiOS is equipped with serial printing, linear framebuffer graphic printing, IDT with fault interrupts (#DE, #DB, #UD, #DF, #GP, #PF), GDT, half high virtual memory paging, 64 bit long mode.
+As of 20th of March, LucidiOS is equipped with:
+* serial printing
+* linear framebuffer graphic printing
+* IDT with excpetions and hardware interrupts
+* I/O APIC and LAPIC (still just on BSP CPU, LucidiOS isn't SMP yet)
+* GDT
+* half high virtual memory paging
+* 64 bit long mode
 
 current Roadmap is detailed in architecture and design files.
                                                                                
