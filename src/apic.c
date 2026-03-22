@@ -43,7 +43,6 @@ void init_APIC_timer(void) {
         last_count = count;
     }
 
-    // 4. Stop LAPIC and calculate the rate
     uint32_t current_lapic = Current_Count_R(g_hhdm_offset);
     Initial_Count_R(g_hhdm_offset) = 0; // Stop the timer
     
@@ -64,6 +63,13 @@ void disable_pic(void) {
     outb(0xA1, 0xFF);
 }
 
+void init_LINTS(void) {
+    LINT0(g_hhdm_offset) |= (0b1<<16); // mask
+    disable_pic();
+    
+    LINT1(g_hhdm_offset) |= (0b100<<8); // NMI
+}
+
 void init_LAPIC(void) {
 
     SVR(g_hhdm_offset) |= (0b1<<8); 
@@ -77,11 +83,9 @@ void init_LAPIC(void) {
     write_better("\nLAPIC Error set up\n");
 
     write_better("\nsetting up LINT0 and LINT1\n");
-    LINT0(g_hhdm_offset) |= (0b1<<16); // mask
-    disable_pic();
-    
-    LINT1(g_hhdm_offset) |= (0b100<<8); // NMI
-    write_better("\nthey set\n");
+    init_LINTS();
+    write_better("\nLINT0 and LINT1 are set\n");
+
 
     //TPR(g_hhdm_offset) = 0;
     uint64_t tpr_value = 0;

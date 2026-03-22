@@ -85,6 +85,7 @@ typedef struct madt madt_t;
 void init_LAPIC(void);
 void init_APIC_timer(void);
 void init_APIC_error(void);
+void init_LINTS(void);
 void disable_pic(void);
 
 void init_IOAPIC(void);
