@@ -27,14 +27,10 @@ void set_bitmap_pmm(struct limine_memmap_response *map) {
 
     for (uint64_t i = 0; i < map->entry_count; i++) {
         // Look for a USABLE block that is big enough
-        if (map->entries[i]->type == LIMINE_MEMMAP_USABLE && map->entries[i]->length >= (bitmap_length*8)) {
+        if (is_entry_type(LIMINE_MEMMAP_USABLE, i, map) && map->entries[i]->length >= (bitmap_length*8)) {
             bitmap = (uint64_t*)(map->entries[i]->base + g_hhdm_offset);
             for (size_t j = 0; j<bitmap_length; j++) {bitmap[j] = 0xFFFFFFFFFFFFFFFF;}
             break;
         }
-    }
-
-    for (uint64_t i = 0; i < map->entry_count; i++) {
-        if(is_entry_type(LIMINE_MEMMAP_USABLE, i, map)) map->entries[i]->
     }
 }
