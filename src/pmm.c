@@ -33,4 +33,8 @@ void set_bitmap_pmm(struct limine_memmap_response *map) {
             break;
         }
     }
+
+    for (uint64_t i = 0; i < map->entry_count; i++) {
+        if(is_entry_type(LIMINE_MEMMAP_USABLE, i, map)) map->entries[i]->
+    }
 }
