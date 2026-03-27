@@ -3,8 +3,7 @@
 #include "apic.h"
 #include "segments.h"
 #include "paging.h"
-
-
+#include "pmm.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -112,6 +111,7 @@ void kmain(void) {
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     g_hhdm_offset = hhdm_request.response->offset; 
     rsdp_pointer = rsdp_request.response->address; 
+    //struct limine_memmap_response *big_map = memmap_request.response;
 
     madt_parsing();
 
