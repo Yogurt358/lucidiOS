@@ -3,6 +3,7 @@
 static uint64_t* bitmap;
 extern uint64_t g_hhdm_offset;
 
+
 //------------------------------------PMM------------------------------------------
 void pmm_free_page(uint64_t page_idx) {
     uint64_t array_index = (page_idx) / 64; // The "Row" (which uint64_t)
@@ -33,6 +34,14 @@ uint64_t pmm_alloc2(size_t length) { // assuming length is page to bit
     return 0;
 }
 //------------------------------------PMM------------------------------------------
+
+//------------------------------------VMM------------------------------------------
+void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags) {
+    uint64_t pml4_phys = read_cr3() & 0x000FFFFFFFFFF000ULL; 
+    uint64_t *pml4_virt = (uint64_t*)(pml4_phys + g_hhdm_offset);
+}
+//------------------------------------VMM------------------------------------------
+
 
 //------------------------------------BITMAP------------------------------------------
 bool is_entry_type(size_t type, size_t i, struct limine_memmap_response *map) {

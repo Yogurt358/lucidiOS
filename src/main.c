@@ -113,23 +113,33 @@ void kmain(void) {
     rsdp_pointer = rsdp_request.response->address; 
     //struct limine_memmap_response *big_map = memmap_request.response;
 
+    // temporary bump allocator paging
     madt_parsing();
-
     init_pmm(memmap_request.response);
     map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
     map_page(ioapic_base, ioapic_base - g_hhdm_offset, 0x13, g_hhdm_offset);
+    // temporary bump allocator paging
 
     init_LAPIC();
     init_IOAPIC();
     while (inb(0x64) & 1) {
         inb(0x60);
     }
-    asm volatile("sti");
+    //asm volatile("sti");
 
     draw_sentence(framebuffer, "Check 1");
 
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
-    asm volatile("int $0x32");
+    
+    /*
+    uint64_t eax_value = 0x80000008;
+    uint32_t eax;
+    volatile uint8_t desired_value;
+    asm volatile("cpuid":"=a"(eax):"a"(eax_value):"edx", "ecx", "ebx");
+    desired_value = (eax>>8)&0xFF;
+    asm volatile("movzbl %0 ,%%eax"::"r"(desired_value):"eax");
+    */
+    
     hcf();
 }
