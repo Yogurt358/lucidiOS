@@ -84,4 +84,89 @@ void init_serial() {
 
 }
 
+void print_hex_serial(uint64_t n) {
+    char* hex_chars = "0123456789ABCDEF";
+    
+    // Optional: print the '0x' prefix
+    write_serial('0');
+    write_serial('x');
+
+    // We loop 16 times (64 bits / 4 bits per hex digit)
+    // We go from most significant to least significant
+    for (int i = 60; i >= 0; i -= 4) {
+        uint8_t nibble = (n >> i) & 0xF;
+        write_serial(hex_chars[nibble]);
+    }
+}
+
+void print_int_serial(int64_t n) {
+    if (n == 0) {
+        write_serial('0');
+        return;
+    }
+
+    if (n < 0) {
+        write_serial('-');
+        n = -n;
+    }
+
+    char buffer[32]; // Long enough for any 64-bit integer
+    int i = 0;
+
+    // Extract digits by dividing by 10
+    while (n > 0) {
+        buffer[i++] = (n % 10) + '0';
+        n /= 10;
+    }
+
+    // Print the buffer backward
+    while (i > 0) {
+        write_serial(buffer[--i]);
+    }
+}
+
+void kprintf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt); // 'fmt' is the last "known" argument
+
+    for (size_t i = 0; fmt[i] != '\0'; i++) {
+        if (fmt[i] == '%') {
+            i++; // Move to the specifier (d, s, x, etc.)
+            
+            switch (fmt[i]) {
+                case 's': {
+                    char* s = va_arg(args, char*);
+                    if (!s) s = "(null)";
+                    write_better(s); // Your existing string writer
+                    break;
+                }
+                case 'd': {
+                    int d = va_arg(args, int);
+                    // You'll need an itoa (Integer to ASCII) helper here
+                    print_int_serial(d); 
+                    break;
+                }
+                case 'x': {
+                    uint64_t x = va_arg(args, uint64_t);
+                    print_hex_serial(x);
+                    break;
+                }
+                case '%': {
+                    write_serial('%'); // Handle "%%" literal
+                    break;
+                }
+                default:
+                    // If it's an unknown specifier, just print it
+                    write_serial('%');
+                    write_serial(fmt[i]);
+                    break;
+            }
+        } else {
+            write_serial(fmt[i]);
+        }
+    }
+
+    va_end(args);
+}
+
 

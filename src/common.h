@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include "limine.h"
 
 #define IA32_APIC_BASE_MSR 0x1B
@@ -66,3 +67,7 @@ int is_transmit_empty();
 void write_serial(char a);
 void init_serial();
 void write_better(char* a);
+
+void print_hex_serial(uint64_t n);
+void print_int_serial(int64_t n);
+void kprintf(const char* fmt, ...);
