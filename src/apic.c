@@ -17,7 +17,7 @@ void init_APIC_timer(void) {
 
     //setting up LVT_timer
     timer |= 0x21;
-    timer |= (0b0<<16); // mask bit
+    timer |= (0b1<<16); // mask bit
     timer |= (0b01<<17);
     LVT_timer(g_hhdm_offset) = timer;
 

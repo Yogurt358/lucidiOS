@@ -2,7 +2,6 @@
 #include "interrupts.h"
 #include "apic.h"
 #include "segments.h"
-#include "paging.h"
 #include "pmm.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
@@ -65,6 +64,7 @@ static void hcf(void) {
 uint64_t g_hhdm_offset = 0;
 uint64_t *rsdp_pointer = 0;
 uint64_t ioapic_base = 0;
+size_t bitmap_length = 0;
 
 // The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the
@@ -111,27 +111,26 @@ void kmain(void) {
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     g_hhdm_offset = hhdm_request.response->offset; 
     rsdp_pointer = rsdp_request.response->address; 
-    //struct limine_memmap_response *big_map = memmap_request.response;
-
-    // temporary bump allocator paging
+    struct limine_memmap_response *big_map = memmap_request.response;
     madt_parsing();
-    init_pmm(memmap_request.response);
-    map_page(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13, g_hhdm_offset);
-    map_page(ioapic_base, ioapic_base - g_hhdm_offset, 0x13, g_hhdm_offset);
-    // temporary bump allocator paging
+
+    // new bitmap paging
+    init_bitmap_pmm(big_map);
+    vmm_alloc(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13);
+    vmm_alloc(ioapic_base, ioapic_base - g_hhdm_offset, 0x13);
+    // new bitmap paging
 
     init_LAPIC();
     init_IOAPIC();
     while (inb(0x64) & 1) {
         inb(0x60);
     }
-    //asm volatile("sti");
+    asm volatile("sti");
 
     draw_sentence(framebuffer, "Check 1");
-
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
-    
+
     /*
     uint64_t eax_value = 0x80000008;
     uint32_t eax;
