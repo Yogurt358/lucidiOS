@@ -130,15 +130,6 @@ void kmain(void) {
     draw_sentence(framebuffer, "Check 1");
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
-
-    /*
-    uint64_t eax_value = 0x80000008;
-    uint32_t eax;
-    volatile uint8_t desired_value;
-    asm volatile("cpuid":"=a"(eax):"a"(eax_value):"edx", "ecx", "ebx");
-    desired_value = (eax>>8)&0xFF;
-    asm volatile("movzbl %0 ,%%eax"::"r"(desired_value):"eax");
-    */
     
     hcf();
 }
