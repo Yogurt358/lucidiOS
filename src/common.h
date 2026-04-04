@@ -42,69 +42,6 @@ static inline uint32_t str(void) {
     return tr;
 }
 
-/*
-static inline bool is_LAPIC(void) {
-    uint32_t edx;
-    asm volatile(
-        "cpuid\n\t"
-        :"=d"(edx)
-        :"a"(1)
-        :"ebx", "ecx"
-    );
-    return ((edx>>9)&0b1);
-}
-
-static inline bool check_ARAT(void) {
-    uint32_t eax; 
-    asm volatile(
-        "cpuid\n\t"
-        :"=a"(eax)
-        :"a"(6)
-        :"ebx", "ecx", "edx"
-    );
-    return ((eax>>2)&0b1);
-}
-
-static inline uint32_t check_CPUID(void) {
-    uint32_t eax; 
-    asm volatile(
-        "cpuid\n\t"
-        :"=a"(eax)
-        :"a"(0)
-        :"ebx", "ecx", "edx"
-    );
-    return eax;
-}
-
-static inline uint8_t CPUID_shish(void) {
-    uint32_t eax, ebx, ecx, edx;
-    asm volatile(
-        "cpuid\n\t"
-        :"=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
-        :"a"(1)
-    );
-    return (uint8_t)(ebx>>24);
-}
-
-static inline uint32_t get_max_extended_leaf(void) {
-    uint32_t eax;
-    asm volatile("cpuid" : "=a"(eax) : "a"(0x80000000) : "ebx", "ecx", "edx");
-    return eax;
-}
-
-static inline uint8_t what(void) {
-    uint32_t eax;
-    asm volatile(
-        "cpuid\n\t"
-        :"=a"(eax)
-        :"a"(0x80000008)
-        :"ecx", "ebx", "edx"
-    );
-    return (uint8_t)(eax);
-}
-
-*/
-
 static inline uint64_t get_lapic_base(void) {
     uint32_t eax, edx;
     asm volatile(
