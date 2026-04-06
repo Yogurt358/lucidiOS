@@ -1,6 +1,7 @@
-#include "pmm.h"
+#include "mm.h"
 
 static uint64_t* bitmap;
+static uint64_t heap_bitmap[8192]; // heap bitmap is 64kb and is bit to uint32_t blocks
 extern uint64_t g_hhdm_offset;
 extern size_t bitmap_length;
 
