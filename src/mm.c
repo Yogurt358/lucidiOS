@@ -1,23 +1,24 @@
 #include "mm.h"
 
 static uint64_t* bitmap;
+
 extern uint64_t g_hhdm_offset;
 extern size_t bitmap_length;
 
 
 //------------------------------------PMM------------------------------------------
-void pmm_free_page(uint64_t page_idx) {
+void pmm_free_page(uint64_t page_idx, uint64_t* bitmap_arg) {
     uint64_t array_index = (page_idx) / 64; // The "Row" (which uint64_t)
     uint64_t bit_index = page_idx % 64;   // The "Column" (which bit)
 
-    bitmap[array_index] &= ~(1ULL << bit_index);
+    bitmap_arg[array_index] &= ~(1ULL << bit_index);
 }
 
-void pmm_lock_page(uint64_t page_idx) {
+void pmm_lock_page(uint64_t page_idx, uint64_t* bitmap_arg) {
     uint64_t array_index = (page_idx) / 64; // The "Row" (which uint64_t)
     uint64_t bit_index = page_idx % 64;   // The "Column" (which bit)
 
-    bitmap[array_index] |= (1ULL << bit_index);
+    bitmap_arg[array_index] |= (1ULL << bit_index);
 }
 
 
@@ -26,7 +27,7 @@ uint64_t pmm_alloc2() { // assuming length is page to bit
         if (bitmap[i] == ~0ULL) continue;
         for(size_t j = 0; j < 64; j++) {
             if(!(bitmap[i] & (1ULL << j))) {
-                pmm_lock_page(i*64+j);
+                pmm_lock_page(i*64+j, bitmap);
                 return (i*64+j)*PAGE_SIZE;
             }
             
@@ -107,7 +108,7 @@ void set_useable_ram(struct limine_memmap_response *map) {
 
             for(uint64_t j = 0; j < page_count; j++) {
                 // Just pass the absolute page number
-                pmm_free_page(start_page + j);
+                pmm_free_page(start_page + j, bitmap);
             }
         }
     }
@@ -119,7 +120,7 @@ void protect_bitmap_space() { // assuming length is page to qword
     size_t pages_to_lock = (bitmap_length*8 + PAGE_SIZE - 1) / PAGE_SIZE;
     // length is already here
     for(size_t i = 0; i < pages_to_lock; i++) {
-        pmm_lock_page(pos + i);
+        pmm_lock_page(pos + i, bitmap);
     }
 }
 
@@ -143,10 +144,57 @@ void init_bitmap_pmm(struct limine_memmap_response *map) {
     all_bitmap_1();
     set_useable_ram(map);
     protect_bitmap_space();
-    pmm_lock_page(0); // just for safety and debugging
+    pmm_lock_page(0, bitmap); // just for safety and debugging
 
 }
 //------------------------------------BITMAP------------------------------------------
 
 
+//------------------------------------HEAP------------------------------------------
+void set_bits(uint64_t page_idx, uint64_t *bitmap_arg, size_t length, size_t sign) {
+    size_t temp = page_idx%64;
+    for (size_t i = 0; i < length; i++) {
+        if (temp<=63) {
+            if (sign == 1) {pmm_lock_page(page_idx ,bitmap_arg);}
+            else {pmm_free_page(page_idx ,bitmap_arg);}
+            temp++;
+        }
+        else {temp = 0;} // next array
+    }       
+}
 
+size_t list_bits(uint64_t *bitmap_arg, size_t index, size_t amount) { // this implementation sucks
+    size_t temp = 64-amount;
+    size_t mask = create_mask(amount);
+    for (size_t i = 0; i < temp; i++) {
+        if(bitmap_arg[index]&(mask<<i)) {return i;}
+    }
+    return 0;
+}
+
+uint64_t create_mask(size_t amount) {
+    size_t mask = 0ULL;
+    for (size_t i = 0; i < amount; i++) {
+        mask |= 1<<i; // every time a bit is set
+    }
+    return mask;
+}
+
+void* kmalloc(uint64_t *bitmap_arg, size_t amount) {
+    for (int i = 0; i < 8192; i++) {
+        size_t j = list_bits(bitmap_arg, i, amount); 
+        if (bitmap_arg[i] & ~0ULL) {
+            continue;
+        }
+        if(j != 0) { // traverse and find list of bits that are available
+            set_bits(i*64+j, bitmap_arg, amount, 1);
+            return (void*)(0); // REPLACE 0 WITH THE STARTING ADDRESS OF THE ALLOCATED HEAP MEMORY
+        }
+    }
+    return 0;
+}
+
+void kfree(void *p, size_t amount) {
+    ;
+}
+//------------------------------------HEAP------------------------------------------
