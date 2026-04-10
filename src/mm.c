@@ -1,6 +1,7 @@
 #include "mm.h"
 
 static uint64_t* bitmap;
+static uint64_t* heap_bitmap; // length is 8192
 
 extern uint64_t g_hhdm_offset;
 extern size_t bitmap_length;
@@ -138,6 +139,68 @@ void bitmap_pointer(struct limine_memmap_response *map) {
     }
 }
 
+
+//------------------------------------BITMAP------------------------------------------
+
+
+//------------------------------------HEAP------------------------------------------
+
+
+
+size_t find_start(uint64_t* bitmap_arg, size_t index) {
+    // returns index of the bit inside the array
+    for (size_t i = 0; i < 64; i++) {
+        if(bitmap_arg[index]&(1<<i)) return i; 
+    }
+    return 0;
+} 
+
+void heap_bitmap_pointer() {
+    size_t temp = 8192;
+    size_t j = 0;
+    for(size_t i = 0; i < bitmap_length; i++) {
+        if(bitmap[i]&(~0ULL)) {continue;}
+
+        j = find_start(bitmap, i);
+        heap_bitmap = (uint64_t*)(((i*64+j)*4096)+ g_hhdm_offset);
+        for(;temp > 0;temp--) {
+            if(j == 63) {j = 0;}
+            if(!(bitmap[i]&(1<<j))) {
+                heap_bitmap = 0;
+                break;
+            }
+            j++;
+        }
+    }
+}
+
+void *kmalloc(size_t amount) {
+    // 1) finds a list (amount/32) bits in the heap_bitmap that are available
+    // 2) sets them to 1
+    // 3) returns a pointer to the space.
+    amount++; // header trick to specify size needed to free in the beginning (32 bits)
+    size_t temp = amount;
+    size_t j = 0;
+    void *result = 0;
+    for (size_t i = 0; i < 8192; i++) {
+        if (heap_bitmap[i]&~0ULL) {continue;}
+
+        j = find_start(heap_bitmap, i);
+        result = (void*)((i*64+j)*32+heap_bitmap);
+        for(;temp > 0;temp--) {
+            if(j == 63) {j = 0;}
+            if(!(heap_bitmap[i]&(1<<j))) {
+                result = 0;
+                break;
+            }
+            j++;
+        }
+    }
+    return result;
+
+}
+//------------------------------------HEAP------------------------------------------
+
 void init_bitmap_pmm(struct limine_memmap_response *map) {
     bitmap_length = get_bitmap_length(map, PAGE_TO_QWORD); // bit map
     bitmap_pointer(map);
@@ -145,56 +208,5 @@ void init_bitmap_pmm(struct limine_memmap_response *map) {
     set_useable_ram(map);
     protect_bitmap_space();
     pmm_lock_page(0, bitmap); // just for safety and debugging
-
+    heap_bitmap_pointer();
 }
-//------------------------------------BITMAP------------------------------------------
-
-
-//------------------------------------HEAP------------------------------------------
-void set_bits(uint64_t page_idx, uint64_t *bitmap_arg, size_t length, size_t sign) {
-    size_t temp = page_idx%64;
-    for (size_t i = 0; i < length; i++) {
-        if (temp<=63) {
-            if (sign == 1) {pmm_lock_page(page_idx ,bitmap_arg);}
-            else {pmm_free_page(page_idx ,bitmap_arg);}
-            temp++;
-        }
-        else {temp = 0;} // next array
-    }       
-}
-
-size_t list_bits(uint64_t *bitmap_arg, size_t index, size_t amount) { // this implementation sucks
-    size_t temp = 64-amount;
-    size_t mask = create_mask(amount);
-    for (size_t i = 0; i < temp; i++) {
-        if(bitmap_arg[index]&(mask<<i)) {return i;}
-    }
-    return 0;
-}
-
-uint64_t create_mask(size_t amount) {
-    size_t mask = 0ULL;
-    for (size_t i = 0; i < amount; i++) {
-        mask |= 1<<i; // every time a bit is set
-    }
-    return mask;
-}
-
-void* kmalloc(uint64_t *bitmap_arg, size_t amount) {
-    for (int i = 0; i < 8192; i++) {
-        size_t j = list_bits(bitmap_arg, i, amount); 
-        if (bitmap_arg[i] & ~0ULL) {
-            continue;
-        }
-        if(j != 0) { // traverse and find list of bits that are available
-            set_bits(i*64+j, bitmap_arg, amount, 1);
-            return (void*)(0); // REPLACE 0 WITH THE STARTING ADDRESS OF THE ALLOCATED HEAP MEMORY
-        }
-    }
-    return 0;
-}
-
-void kfree(void *p, size_t amount) {
-    ;
-}
-//------------------------------------HEAP------------------------------------------

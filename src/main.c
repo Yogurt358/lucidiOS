@@ -65,7 +65,6 @@ uint64_t g_hhdm_offset = 0;
 uint64_t *rsdp_pointer = 0;
 uint64_t ioapic_base = 0;
 size_t bitmap_length = 0;
-uint64_t heap_bitmap[8192];
 
 // The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the

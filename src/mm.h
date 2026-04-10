@@ -5,6 +5,7 @@
 #define BLOCK_SIZE 32
 #define PAGE_TO_BIT 1
 #define PAGE_TO_QWORD 64
+
 #define MAXIMUM_PHYSICAL_BITS 40
 #define MAXIMUM_VIRTUAL_BITS 48
 
@@ -52,10 +53,8 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags);
 //------------------------------------VMM------------------------------------------
 
 //------------------------------------HEAP------------------------------------------
-void set_bits(uint64_t page_idx, uint64_t *bitmap_arg, size_t length, size_t sign);
-uint64_t create_mask(size_t amount);
-size_t list_bits(uint64_t *bitmap_arg, size_t index, size_t amount);
-void* kmalloc(uint64_t *bitmap_arg, size_t amount);
-void kfree(void *p, size_t amount);
+size_t find_start(uint64_t* bitmap_arg, size_t index);
+void heap_bitmap_pointer();
+void * kmalloc(size_t amount);
 //------------------------------------HEAP------------------------------------------
 
