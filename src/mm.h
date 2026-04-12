@@ -1,8 +1,11 @@
 #pragma once
 #include "common.h"
 
+
+#define HEAP_VIRT_START 0xFFFF800000000000
 #define PAGE_SIZE 4096
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 16
+#define HEAP_MAX_BLOCKS (8192 * 64)
 #define PAGE_TO_BIT 1
 #define PAGE_TO_QWORD 64
 
@@ -53,8 +56,8 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags);
 //------------------------------------VMM------------------------------------------
 
 //------------------------------------HEAP------------------------------------------
-size_t find_start(uint64_t* bitmap_arg, size_t index);
 void heap_bitmap_pointer();
-void * kmalloc(size_t amount);
+void* kmalloc(size_t amount_bytes);
+void kfree(void *p);
 //------------------------------------HEAP------------------------------------------
 

@@ -118,6 +118,10 @@ void kmain(void) {
     init_bitmap_pmm(big_map);
     vmm_alloc(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13);
     vmm_alloc(ioapic_base, ioapic_base - g_hhdm_offset, 0x13);
+    for (uint64_t i = 0; i < 512; i++) { // Map 2MB of heap to start with
+        uint64_t phys = pmm_alloc2();
+        vmm_alloc(HEAP_VIRT_START + (i * PAGE_SIZE), phys, 0x03);
+    }
     // new bitmap paging
 
     init_LAPIC();
@@ -130,6 +134,12 @@ void kmain(void) {
     draw_sentence(framebuffer, "Check 1");
     reset(framebuffer);
     draw_sentence(framebuffer, "Check 2");
+
+    char* p1 = (char*)kmalloc(16);
+    char* p2 = (char*)kmalloc(2);
+    kprintf("P1: %x, P2: %x\n", (uint64_t)p1, (uint64_t)p2);
+    kfree(p1);
+    kfree(p2);
     
     hcf();
 }

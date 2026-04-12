@@ -145,59 +145,59 @@ void bitmap_pointer(struct limine_memmap_response *map) {
 
 //------------------------------------HEAP------------------------------------------
 
-
-
-size_t find_start(uint64_t* bitmap_arg, size_t index) {
-    // returns index of the bit inside the array
-    for (size_t i = 0; i < 64; i++) {
-        if(bitmap_arg[index]&(1<<i)) return i; 
-    }
-    return 0;
-} 
-
 void heap_bitmap_pointer() {
-    size_t temp = 8192;
-    size_t j = 0;
-    for(size_t i = 0; i < bitmap_length; i++) {
-        if(bitmap[i]&(~0ULL)) {continue;}
-
-        j = find_start(bitmap, i);
-        heap_bitmap = (uint64_t*)(((i*64+j)*4096)+ g_hhdm_offset);
-        for(;temp > 0;temp--) {
-            if(j == 63) {j = 0;}
-            if(!(bitmap[i]&(1<<j))) {
-                heap_bitmap = 0;
-                break;
-            }
-            j++;
-        }
-    }
+    uint64_t phys_for_bitmap = pmm_alloc2();
+    heap_bitmap = (uint64_t*)(phys_for_bitmap + g_hhdm_offset);
+    memset(heap_bitmap, 0, 8192 * 8);
 }
 
-void *kmalloc(size_t amount) {
-    // 1) finds a list (amount/32) bits in the heap_bitmap that are available
-    // 2) sets them to 1
-    // 3) returns a pointer to the space.
-    amount++; // header trick to specify size needed to free in the beginning (32 bits)
-    size_t temp = amount;
-    size_t j = 0;
-    void *result = 0;
-    for (size_t i = 0; i < 8192; i++) {
-        if (heap_bitmap[i]&~0ULL) {continue;}
+void* kmalloc(size_t amount_bytes) {
+    size_t blocks_needed = (amount_bytes + BLOCK_SIZE - 1) / BLOCK_SIZE + 1;
+    size_t contiguous_found = 0;
+    size_t start_bit = 0;
 
-        j = find_start(heap_bitmap, i);
-        result = (void*)((i*64+j)*32+heap_bitmap);
-        for(;temp > 0;temp--) {
-            if(j == 63) {j = 0;}
-            if(!(heap_bitmap[i]&(1<<j))) {
-                result = 0;
-                break;
+    for (size_t i = 0; i < HEAP_MAX_BLOCKS; i++) {
+        uint64_t array_idx = i / 64;
+        uint64_t bit_idx = i % 64;
+
+        if (!(heap_bitmap[array_idx] & (1ULL << bit_idx))) {
+            if (contiguous_found == 0) start_bit = i;
+            contiguous_found++;
+
+            if (contiguous_found == blocks_needed) {
+                // Found a big enough gap! Lock it.
+                for (size_t k = 0; k < blocks_needed; k++) {
+                    pmm_lock_page(start_bit + k, heap_bitmap);
+                }
+                
+                uint64_t virt_addr = HEAP_VIRT_START + (start_bit * BLOCK_SIZE);
+                *(uint64_t*)virt_addr = blocks_needed; // Write header
+                return (void*)(virt_addr + BLOCK_SIZE);
             }
-            j++;
+        } else {
+            contiguous_found = 0; // Reset search
         }
     }
-    return result;
+    return NULL; // Out of memory
+}
 
+void kfree(void *p) {
+    if (!p) return;
+
+    // 1. Move the pointer back 32 bytes to find our header
+    uint64_t virt_addr = (uint64_t)p - BLOCK_SIZE;
+    uint64_t* header = (uint64_t*)virt_addr;
+
+    // 2. Read how many blocks we need to free
+    uint64_t blocks_to_free = *header;
+
+    // 3. Calculate which bit in the heap_bitmap this corresponds to
+    uint64_t bit_idx = (virt_addr - HEAP_VIRT_START) / BLOCK_SIZE;
+
+    // 4. Unlock those bits in the heap_bitmap
+    for (uint64_t i = 0; i < blocks_to_free; i++) {
+        pmm_free_page(bit_idx + i, heap_bitmap); // pmm_free_page works for any bitmap
+    }
 }
 //------------------------------------HEAP------------------------------------------
 
