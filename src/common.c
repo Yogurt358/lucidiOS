@@ -137,13 +137,17 @@ void kprintf(const char* fmt, ...) {
                 case 's': {
                     char* s = va_arg(args, char*);
                     if (!s) s = "(null)";
-                    write_better(s); // Your existing string writer
+                    write_better(s);
                     break;
                 }
                 case 'd': {
                     int d = va_arg(args, int);
-                    // You'll need an itoa (Integer to ASCII) helper here
                     print_int_serial(d); 
+                    break;
+                }
+                case 'c': {
+                    char c = va_arg(args, char);
+                    write_serial(c);
                     break;
                 }
                 case 'x': {
