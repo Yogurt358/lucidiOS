@@ -6,7 +6,6 @@ static uint64_t* heap_bitmap; // length is 8192
 extern uint64_t g_hhdm_offset;
 extern size_t bitmap_length;
 
-
 //------------------------------------PMM------------------------------------------
 void pmm_free_page(uint64_t page_idx, uint64_t* bitmap_arg) {
     uint64_t array_index = (page_idx) / 64; // The "Row" (which uint64_t)
@@ -87,7 +86,7 @@ bool is_entry_type(size_t type, size_t i, struct limine_memmap_response *map) {
     return 0;
 }
 
-uint64_t get_bitmap_length(struct limine_memmap_response *map, int data_type) { // returns length of bitmap
+uint64_t get_bitmap_length(struct limine_memmap_response *map, int data_type) {
     uint64_t max_addr = 0;
     uint64_t result;
     for(uint64_t i = 0; i<map->entry_count; i++) {
@@ -130,9 +129,9 @@ void all_bitmap_1() {
 }
 
 void bitmap_pointer(struct limine_memmap_response *map) {
-    size_t required_bytes = bitmap_length * 8; // assuming length is page to qword
+    size_t bytes = bitmap_length * 8; // assuming length is page to qword
     for(size_t i = 0; i < map->entry_count; i++) {
-        if(is_entry_type(LIMINE_MEMMAP_USABLE, i, map) && map->entries[i]->length >= required_bytes) {
+        if(is_entry_type(LIMINE_MEMMAP_USABLE, i, map) && map->entries[i]->length >= bytes) {
             bitmap = (uint64_t*)(map->entries[i]->base + g_hhdm_offset);
             break;
         }
@@ -151,11 +150,10 @@ void heap_bitmap_pointer() {
     memset(heap_bitmap, 0, 8192 * 8);
 }
 
-void* kmalloc(size_t amount_bytes) {
-    size_t blocks_needed = (amount_bytes + BLOCK_SIZE - 1) / BLOCK_SIZE + 1;
+void* kmalloc(size_t amount) {
+    size_t blocks = (amount + BLOCK_SIZE - 1) / BLOCK_SIZE + 1;
     size_t contiguous_found = 0;
     size_t start_bit = 0;
-
     for (size_t i = 0; i < HEAP_MAX_BLOCKS; i++) {
         uint64_t array_idx = i / 64;
         uint64_t bit_idx = i % 64;
@@ -163,15 +161,14 @@ void* kmalloc(size_t amount_bytes) {
         if (!(heap_bitmap[array_idx] & (1ULL << bit_idx))) {
             if (contiguous_found == 0) start_bit = i;
             contiguous_found++;
-
-            if (contiguous_found == blocks_needed) {
-                // Found a big enough gap! Lock it.
-                for (size_t k = 0; k < blocks_needed; k++) {
+            if (contiguous_found == blocks) {
+                // list is big enough
+                for (size_t k = 0; k < blocks; k++) {
                     pmm_lock_page(start_bit + k, heap_bitmap);
                 }
                 
                 uint64_t virt_addr = HEAP_VIRT_START + (start_bit * BLOCK_SIZE);
-                *(uint64_t*)virt_addr = blocks_needed; // Write header
+                *(uint64_t*)virt_addr = blocks; // Write header
                 return (void*)(virt_addr + BLOCK_SIZE);
             }
         } else {
@@ -183,20 +180,13 @@ void* kmalloc(size_t amount_bytes) {
 
 void kfree(void *p) {
     if (!p) return;
-
-    // 1. Move the pointer back 32 bytes to find our header
     uint64_t virt_addr = (uint64_t)p - BLOCK_SIZE;
     uint64_t* header = (uint64_t*)virt_addr;
-
-    // 2. Read how many blocks we need to free
-    uint64_t blocks_to_free = *header;
-
-    // 3. Calculate which bit in the heap_bitmap this corresponds to
+    uint64_t blocks_free = *header;
     uint64_t bit_idx = (virt_addr - HEAP_VIRT_START) / BLOCK_SIZE;
 
-    // 4. Unlock those bits in the heap_bitmap
-    for (uint64_t i = 0; i < blocks_to_free; i++) {
-        pmm_free_page(bit_idx + i, heap_bitmap); // pmm_free_page works for any bitmap
+    for (uint64_t i = 0; i < blocks_free; i++) {
+        pmm_free_page(bit_idx + i, heap_bitmap);
     }
 }
 //------------------------------------HEAP------------------------------------------
