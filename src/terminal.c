@@ -1,4 +1,4 @@
-#include "fb.h"
+#include "terminal.h"
 #include "limine.h"
 
 uint16_t column = 0;
