@@ -4717,23 +4717,23 @@ void screen_saver(struct limine_framebuffer* _fb) {
     uint64_t middle_height = max_height/2;
 
     size_t x = 0;
+
     size_t y_top = middle_height;
     size_t y_bottom = middle_height;
-    for (size_t i = 0; i<max_width; i++) {
-        if(is_black) {
-            if(color == RGB32_BLACK) {
-                color += 2;
-                is_black = 0;
-            }
-            color--;
+    for (;;) {
+        if(x==max_width-1) {
+            x = 0;
         }
-        else {
-            if(color == RGB32_WHITE) {
-                color -= 2;
-                is_black = 1;
-            }
-            color++;
+
+        color &= 0xFFFFFF; 
+        if (is_black) {
+            if (color == 0) is_black = false;
+            else color--;
+        } else {
+            if (color == 0xFFFFFF) is_black = true;
+            else color++;
         }
+        
         for (size_t j = middle_height; j < max_height; j++) {
             fill_half(_fb, x, y_bottom, y_top, color);
             if (y_top == max_height-1 && y_bottom == 1) {
