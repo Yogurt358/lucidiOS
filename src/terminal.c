@@ -1,5 +1,4 @@
 #include "terminal.h"
-#include "limine.h"
 
 uint16_t column = 0;
 uint8_t line = 0;
@@ -4704,4 +4703,55 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s) {
         }
         s++;
     }
+}
+
+void screen_saver(struct limine_framebuffer* _fb) {
+    bool is_black = 1;
+    uint32_t color = RGB32_ORANGE;
+    size_t sleep_time = 1;
+    kprintf("sleeping for %d seconds\n", sleep_time);
+    reset(_fb);
+
+    uint64_t max_width = _fb->width;
+    uint64_t max_height = _fb->height;
+    uint64_t middle_height = max_height/2;
+
+    size_t x = 0;
+    size_t y_top = middle_height;
+    size_t y_bottom = middle_height;
+    for (size_t i = 0; i<max_width; i++) {
+        if(is_black) {
+            if(color == 0) {
+                color += 2;
+                is_black = 0;
+            }
+            color--;
+        }
+        else {
+            if(color == 0xFFFFFF) {
+                color -= 2;
+                is_black = 1;
+            }
+            color++;
+        }
+        for (size_t j = middle_height; j < max_height; j++) {
+            fill_half(_fb, x, y_bottom, y_top, color);
+            if (y_top == max_height-1 && y_bottom == 1) {
+                y_top = middle_height;
+                y_bottom = middle_height;
+                x++;
+                continue;
+            }
+            y_top += 1;
+            y_bottom -= 1;
+            //sleep(sleep_time);
+        }
+    }
+    
+}
+
+void fill_half(struct limine_framebuffer* _fb, size_t x, size_t y_bottom, size_t y_top, uint32_t color) {
+    draw_pixel(_fb, x, y_top, color);
+    draw_pixel(_fb, x, y_bottom, color);
+    
 }

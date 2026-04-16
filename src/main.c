@@ -65,7 +65,7 @@ uint64_t g_hhdm_offset = 0;
 uint64_t *rsdp_pointer = 0;
 uint64_t ioapic_base = 0;
 size_t bitmap_length = 0;
-size_t tick = 0; // timer ticks every 10ms. 10 seconds to cause screen saver to launch
+volatile uint64_t ticks; // timer ticks every 10ms. 10 seconds to cause screen saver to launch
 
 // The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the
@@ -141,6 +141,8 @@ void kmain(void) {
     kprintf("P1: %x, P2: %x\n", (uint64_t)p1, (uint64_t)p2);
     kfree(p1);
     kfree(p2);
+
+    screen_saver(framebuffer);
     
     hcf();
 }

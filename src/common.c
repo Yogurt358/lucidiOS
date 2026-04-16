@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern volatile uint64_t ticks;
+
 void *memcpy(void *restrict dest, const void *restrict src, size_t n) {
     uint8_t *restrict pdest = (uint8_t *restrict)dest;
     const uint8_t *restrict psrc = (const uint8_t *restrict)src;
@@ -146,7 +148,7 @@ void kprintf(const char* fmt, ...) {
                     break;
                 }
                 case 'c': {
-                    char c = va_arg(args, char);
+                    int c = va_arg(args, int);
                     write_serial(c);
                     break;
                 }
@@ -171,6 +173,14 @@ void kprintf(const char* fmt, ...) {
     }
 
     va_end(args);
+}
+
+void sleep(uint32_t seconds) {
+    // 1 second = 100 ticks (if 1 tick = 10ms)
+    uint64_t target_ticks = ticks + (seconds);
+    while (ticks < target_ticks) {
+        asm volatile("pause"); // Optimization for busy-wait loops
+    }
 }
 
 

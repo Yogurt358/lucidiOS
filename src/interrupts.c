@@ -1,16 +1,18 @@
 #include "interrupts.h"
+// excpetions
 extern void isr0();
 extern void isr1();
 extern void isr6();
 extern void isr8();
 extern void isr13();
 extern void isr14();
-
+//local interrupts
 extern void isr32();
 extern void isr33();
-
+// IRQs
 extern void isr50();
 
+extern volatile uint64_t ticks;
 extern uint64_t g_hhdm_offset;
 
 idtr_t idt_reg;
@@ -62,7 +64,8 @@ extern void isr_handler_C(stack_frame_t *frame) {
             break;
     
         case(33):
-            write_better("\n#APIC timer\n");
+            //write_better("\n#APIC timer\n");
+            ticks++;
             EOI(g_hhdm_offset) = 0;
             break;
         

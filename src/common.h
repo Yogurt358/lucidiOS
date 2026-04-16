@@ -71,3 +71,4 @@ void write_better(char* a);
 void print_hex_serial(uint64_t n);
 void print_int_serial(int64_t n);
 void kprintf(const char* fmt, ...);
+void sleep(uint32_t seconds);
