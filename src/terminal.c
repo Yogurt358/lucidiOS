@@ -4707,7 +4707,7 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s) {
 
 void screen_saver(struct limine_framebuffer* _fb) {
     bool is_black = 1;
-    uint32_t color = RGB32_ORANGE;
+    uint32_t color = RGB32_BLACK;
     size_t sleep_time = 1;
     kprintf("sleeping for %d seconds\n", sleep_time);
     reset(_fb);
@@ -4721,14 +4721,14 @@ void screen_saver(struct limine_framebuffer* _fb) {
     size_t y_bottom = middle_height;
     for (size_t i = 0; i<max_width; i++) {
         if(is_black) {
-            if(color == 0) {
+            if(color == RGB32_BLACK) {
                 color += 2;
                 is_black = 0;
             }
             color--;
         }
         else {
-            if(color == 0xFFFFFF) {
+            if(color == RGB32_WHITE) {
                 color -= 2;
                 is_black = 1;
             }
@@ -4753,5 +4753,4 @@ void screen_saver(struct limine_framebuffer* _fb) {
 void fill_half(struct limine_framebuffer* _fb, size_t x, size_t y_bottom, size_t y_top, uint32_t color) {
     draw_pixel(_fb, x, y_top, color);
     draw_pixel(_fb, x, y_bottom, color);
-    
 }
