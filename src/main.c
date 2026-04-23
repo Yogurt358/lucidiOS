@@ -142,7 +142,7 @@ void kmain(void) {
     kfree(p1);
     kfree(p2);
 
-    screen_saver(framebuffer);
+    screen_saver2(framebuffer);
     
     hcf();
 }

@@ -4708,30 +4708,36 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s) {
 void screen_saver(struct limine_framebuffer* _fb) {
     bool is_black = 1;
     uint32_t color = RGB32_BLACK;
-    size_t sleep_time = 1;
-    kprintf("sleeping for %d seconds\n", sleep_time);
-    reset(_fb);
-
+    //kprintf("sleeping");
+    //sleep(2);
+    //kprintf("slept");
     uint64_t max_width = _fb->width;
     uint64_t max_height = _fb->height;
     uint64_t middle_height = max_height/2;
 
     size_t x = 0;
-
     size_t y_top = middle_height;
     size_t y_bottom = middle_height;
+
+    reset(_fb);
+
     for (;;) {
-        if(x==max_width-1) {
+        if(x==max_height-1) {
             x = 0;
         }
-
         color &= 0xFFFFFF; 
         if (is_black) {
-            if (color == 0) is_black = false;
-            else color--;
-        } else {
-            if (color == 0xFFFFFF) is_black = true;
+            if (color == 0XFFFFFF) {
+                is_black = false;
+                color--;
+            }
             else color++;
+        } else {
+            if (color == 0) {
+                is_black = true;
+                color++;
+            }
+            else color--;
         }
         
         for (size_t j = middle_height; j < max_height; j++) {
@@ -4753,4 +4759,36 @@ void screen_saver(struct limine_framebuffer* _fb) {
 void fill_half(struct limine_framebuffer* _fb, size_t x, size_t y_bottom, size_t y_top, uint32_t color) {
     draw_pixel(_fb, x, y_top, color);
     draw_pixel(_fb, x, y_bottom, color);
+}
+
+void screen_saver2(struct limine_framebuffer* _fb) {
+    uint64_t max_width = _fb->width;
+    uint64_t max_height = _fb->height;
+    uint32_t color = RGB32_WHITE;
+    bool is_up = 0;
+    kprintf("%x\n", max_width);
+    for(size_t i = 0; i < max_height; i++) {
+        for (size_t j = 0; j < max_width; j++) {
+            /*
+            if(!is_up) {
+                if(color==RGB32_BLACK){
+                    is_up=1;
+                    color+=2;
+                }
+                color--;
+                //kprintf("%x\n", color);
+            }
+            else { // is_up
+                if(color==RGB32_WHITE){
+                    is_up=0;
+                    color-=2;
+                }
+                color++;
+            }
+            */
+            
+            draw_pixel(_fb, j, i, color);
+        }
+        color++;
+    }
 }
