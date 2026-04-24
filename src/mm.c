@@ -23,7 +23,7 @@ void pmm_lock_page(uint64_t page_idx, uint64_t* bitmap_arg) {
 
 
 uint64_t pmm_alloc2() { // assuming length is page to bit
-    for(size_t i = 0; i < bitmap_length/64; i++) {
+    for(size_t i = 0; i < bitmap_length; i++) {
         if (bitmap[i] == ~0ULL) continue;
         for(size_t j = 0; j < 64; j++) {
             if(!(bitmap[i] & (1ULL << j))) {
@@ -50,6 +50,7 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags) {
 
     if(!(pml4_virt[pml4_index] & PTE_PRESENT)) { 
         uint64_t new_table = pmm_alloc2(bitmap_length);
+        if (!new_table) { write_better("vmm_alloc: OOM!\n"); return; }
         memset((void*)(new_table + g_hhdm_offset), 0, 4096);
         pml4_virt[pml4_index] = new_table | PTE_PRESENT | PTE_WRITABLE;
     }
@@ -57,6 +58,7 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags) {
 
     if(!(pdpt_virt[pdpt_index] & PTE_PRESENT)) { 
         uint64_t new_table = pmm_alloc2(bitmap_length);
+        if (!new_table) { write_better("vmm_alloc: OOM!\n"); return; }
         memset((void*)(new_table + g_hhdm_offset), 0, 4096);
         pdpt_virt[pdpt_index] = new_table | PTE_PRESENT | PTE_WRITABLE;
     }
@@ -64,6 +66,7 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags) {
 
     if(!(pd_virt[pd_index] & PTE_PRESENT)) { 
         uint64_t new_table = pmm_alloc2(bitmap_length);
+        if (!new_table) { write_better("vmm_alloc: OOM!\n"); return; }
         memset((void*)(new_table + g_hhdm_offset), 0, 4096);
         pd_virt[pd_index] = new_table | PTE_PRESENT | PTE_WRITABLE;
     }

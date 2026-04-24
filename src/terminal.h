@@ -13,7 +13,5 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s);
 void newLine(struct limine_framebuffer* _fb);
 void scrollUp(struct limine_framebuffer* _fb);
 void reset(struct limine_framebuffer* _fb);
+uint32_t plasma_pixel(size_t x, size_t y, uint32_t t, uint64_t W, uint64_t H);
 void screen_saver(struct limine_framebuffer* _fb);
-void fill_half(struct limine_framebuffer* _fb, size_t x, size_t y_bottom, size_t y_top, uint32_t color);
-
-void screen_saver2(struct limine_framebuffer* _fb);

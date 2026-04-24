@@ -74,6 +74,7 @@ extern void isr_handler_C(stack_frame_t *frame) {
             uint8_t scancode = inb(0x60);
             kprintf("%x", scancode);
             write_better("\n#I/O APIC keyboard\n");
+            ticks=0;
             EOI(g_hhdm_offset) = 0;
             break;
 

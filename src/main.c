@@ -131,18 +131,14 @@ void kmain(void) {
         inb(0x60);
     }
     asm volatile("sti");
-
-    draw_sentence(framebuffer, "Check 1");
-    reset(framebuffer);
-    draw_sentence(framebuffer, "Check 2");
-
-    char* p1 = (char*)kmalloc(16);
-    char* p2 = (char*)kmalloc(2);
-    kprintf("P1: %x, P2: %x\n", (uint64_t)p1, (uint64_t)p2);
-    kfree(p1);
-    kfree(p2);
-
-    screen_saver2(framebuffer);
+    size_t i = 0;
+    while (1) {
+        kprintf("reset %d\n", i);
+        reset(framebuffer);
+        kprintf("end reset %d\n", i);
+        i++;
+        screen_saver(framebuffer);
+    }
     
     hcf();
 }

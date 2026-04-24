@@ -3,6 +3,25 @@
 uint16_t column = 0;
 uint8_t line = 0;
 
+static const uint8_t sine_lut[256] = {
+    128,131,134,137,140,143,146,149,152,155,158,162,165,167,170,173,
+    176,179,182,185,188,190,193,196,198,201,203,206,208,211,213,215,
+    218,220,222,224,226,228,230,232,234,235,237,238,240,241,243,244,
+    245,246,248,249,250,250,251,252,253,253,254,254,254,255,255,255,
+    255,255,255,255,254,254,254,253,253,252,251,250,250,249,248,246,
+    245,244,243,241,240,238,237,235,234,232,230,228,226,224,222,220,
+    218,215,213,211,208,206,203,201,198,196,193,190,188,185,182,179,
+    176,173,170,167,165,162,158,155,152,149,146,143,140,137,134,131,
+    128,124,121,118,115,112,109,106,103,100, 97, 93, 90, 88, 85, 82,
+     79, 76, 73, 70, 67, 65, 62, 59, 57, 54, 52, 49, 47, 44, 42, 40,
+     37, 35, 33, 31, 29, 27, 25, 23, 21, 20, 18, 17, 15, 14, 12, 11,
+     10,  9,  7,  6,  5,  5,  4,  3,  2,  2,  1,  1,  1,  0,  0,  0,
+      0,  0,  0,  0,  1,  1,  1,  2,  2,  3,  4,  5,  5,  6,  7,  9,
+     10, 11, 12, 14, 15, 17, 18, 20, 21, 23, 25, 27, 29, 31, 33, 35,
+     37, 40, 42, 44, 47, 49, 52, 54, 57, 59, 62, 65, 67, 70, 73, 76,
+     79, 82, 85, 88, 90, 93, 97,100,103,106,109,112,115,118,121,124
+};
+
 uint8_t font[256][16] = {
     { // Char 0
         0b00000000, // 
@@ -4622,22 +4641,27 @@ void reset(struct limine_framebuffer* _fb) {
 
     for (size_t y = 0; y <_fb->height; y++) {
         for(size_t x = 0; x < _fb->width; x++) {
+            //kprintf("%x, %x\n", x, y);
             draw_pixel(_fb, x, y, RGB32_BLACK);
         }
     }
 }
 void scrollUp(struct limine_framebuffer* _fb) {
     volatile uint32_t *fb_ptr = _fb->address;
-    for (size_t y = 0; y <_fb->height; y++) {
-        for(size_t x = 0; x < _fb->width; x++) {
-            fb_ptr[(y-1)*(_fb->pitch/4)+x] = RGB32_BLACK;
+    uint64_t pitch_px = _fb->pitch / 4;
+
+    // Shift every row up by one (start from y=1, copy to y-1)
+    for (size_t y = 1; y < _fb->height; y++) {
+        for (size_t x = 0; x < _fb->width; x++) {
+            fb_ptr[(y - 1) * pitch_px + x] = fb_ptr[y * pitch_px + x];
         }
     }
-
-    for(size_t x = 0; x < _fb->width; x++) {
-            fb_ptr[(_fb->height-1)*(_fb->pitch/4)+x] = RGB32_BLACK;
-        }
+    // Clear the newly freed last row
+    for (size_t x = 0; x < _fb->width; x++) {
+        fb_ptr[(_fb->height - 1) * pitch_px + x] = RGB32_BLACK;
+    }
 }
+
 void newLine(struct limine_framebuffer* _fb) {
     if (line < _fb->height - 1) {
         line++;
@@ -4705,90 +4729,36 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s) {
     }
 }
 
+uint32_t plasma_pixel(size_t x, size_t y, uint32_t t, uint64_t W, uint64_t H) {
+    uint8_t sx = (uint8_t)((x * 255) / W);
+    uint8_t sy = (uint8_t)((y * 255) / H);
+
+    // Three independent sine waves with different spatial frequencies
+    uint8_t v1 = sine_lut[(sx +  t      ) & 0xFF];
+    uint8_t v2 = sine_lut[(sy +  t *  2 ) & 0xFF];
+    uint8_t v3 = sine_lut[((sx / 2 + sy / 2) + t * 3) & 0xFF];
+
+    // Combine into a single hue index, then fan R/G/B 120° apart
+    uint8_t h = (uint8_t)((v1 + v2 + v3) / 3);
+    uint8_t r = sine_lut[(h      ) & 0xFF];
+    uint8_t g = sine_lut[(h +  85) & 0xFF]; // 85  ≈ 256/3
+    uint8_t b = sine_lut[(h + 170) & 0xFF]; // 170 ≈ 2*256/3
+
+    return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
+
 void screen_saver(struct limine_framebuffer* _fb) {
-    bool is_black = 1;
-    uint32_t color = RGB32_BLACK;
-    //kprintf("sleeping");
-    //sleep(2);
-    //kprintf("slept");
-    uint64_t max_width = _fb->width;
-    uint64_t max_height = _fb->height;
-    uint64_t middle_height = max_height/2;
-
-    size_t x = 0;
-    size_t y_top = middle_height;
-    size_t y_bottom = middle_height;
-
-    reset(_fb);
+    //extern volatile uint64_t last_keypress_tick;
+    extern volatile uint64_t ticks;
+    uint32_t t = 0;
+    //kprintf("ticks: %x\n", ticks);
 
     for (;;) {
-        if(x==max_height-1) {
-            x = 0;
-        }
-        color &= 0xFFFFFF; 
-        if (is_black) {
-            if (color == 0XFFFFFF) {
-                is_black = false;
-                color--;
-            }
-            else color++;
-        } else {
-            if (color == 0) {
-                is_black = true;
-                color++;
-            }
-            else color--;
-        }
-        
-        for (size_t j = middle_height; j < max_height; j++) {
-            fill_half(_fb, x, y_bottom, y_top, color);
-            if (y_top == max_height-1 && y_bottom == 1) {
-                y_top = middle_height;
-                y_bottom = middle_height;
-                x++;
-                continue;
-            }
-            y_top += 1;
-            y_bottom -= 1;
-            //sleep(sleep_time);
-        }
-    }
-    
-}
+        if (ticks <= 1000) { t = 0; break;}
 
-void fill_half(struct limine_framebuffer* _fb, size_t x, size_t y_bottom, size_t y_top, uint32_t color) {
-    draw_pixel(_fb, x, y_top, color);
-    draw_pixel(_fb, x, y_bottom, color);
-}
-
-void screen_saver2(struct limine_framebuffer* _fb) {
-    uint64_t max_width = _fb->width;
-    uint64_t max_height = _fb->height;
-    uint32_t color = RGB32_WHITE;
-    bool is_up = 0;
-    kprintf("%x\n", max_width);
-    for(size_t i = 0; i < max_height; i++) {
-        for (size_t j = 0; j < max_width; j++) {
-            /*
-            if(!is_up) {
-                if(color==RGB32_BLACK){
-                    is_up=1;
-                    color+=2;
-                }
-                color--;
-                //kprintf("%x\n", color);
-            }
-            else { // is_up
-                if(color==RGB32_WHITE){
-                    is_up=0;
-                    color-=2;
-                }
-                color++;
-            }
-            */
-            
-            draw_pixel(_fb, j, i, color);
-        }
-        color++;
+        for (size_t i = 0; i < _fb->height; i++)
+            for (size_t j = 0; j < _fb->width; j++)
+                draw_pixel(_fb, j, i, plasma_pixel(j, i, t, _fb->width, _fb->height));
+        t+=2;
     }
 }
