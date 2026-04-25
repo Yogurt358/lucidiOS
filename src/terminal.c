@@ -4676,7 +4676,7 @@ void newLine(struct limine_framebuffer* _fb) {
 void draw_pixel (struct limine_framebuffer* _fb, size_t x, size_t y, uint32_t color) {
     //uint64_t width = _fb->width;
     //uint64_t height = _fb->height;
-    volatile uint32_t *fb_ptr = _fb->address;
+    volatile uint32_t *fb_ptr = (uint32_t*)(_fb->address);
 
     fb_ptr[y*(_fb->pitch/4)+x] = color;
 
@@ -4754,7 +4754,7 @@ void screen_saver(struct limine_framebuffer* _fb) {
     //kprintf("ticks: %x\n", ticks);
 
     for (;;) {
-        if (ticks <= 1000) { t = 0; break;}
+        if (ticks <= 1000) { t = 0; reset(_fb); break;}
 
         for (size_t i = 0; i < _fb->height; i++)
             for (size_t j = 0; j < _fb->width; j++)

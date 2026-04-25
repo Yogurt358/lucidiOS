@@ -45,6 +45,7 @@ global isr%1
 isr%1:
 	push 0 ; no error code
 	push %1 ; vector
+    PUSH_ALL
 	lea rax, [rel isr_common]
 	jmp rax
 %endmacro
@@ -54,6 +55,7 @@ global isr%1
 isr%1:
 	; CPU already pushed error code
 	push %1 ; vector
+    PUSH_ALL
     lea rax, [rel isr_common]
 	jmp rax
 %endmacro
@@ -63,6 +65,7 @@ global isr%1
 isr%1:
     push 0 ; no error code 
     push %1 ; vector
+    PUSH_ALL
     lea rax, [rel isr_common]
     jmp rax
 %endmacro
@@ -91,9 +94,6 @@ ISR_HARD 50
 
 
 isr_common:
-
-
-PUSH_ALL
 
 mov rdi, rsp ; pass pointer to stack
 call isr_handler_C

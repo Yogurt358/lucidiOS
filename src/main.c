@@ -108,10 +108,10 @@ void kmain(void) {
         hcf();
     }
 
-    
+
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    g_hhdm_offset = hhdm_request.response->offset; 
-    rsdp_pointer = rsdp_request.response->address; 
+    g_hhdm_offset = hhdm_request.response->offset;
+    rsdp_pointer = rsdp_request.response->address;
     struct limine_memmap_response *big_map = memmap_request.response;
     madt_parsing();
 
@@ -123,6 +123,31 @@ void kmain(void) {
         uint64_t phys = pmm_alloc2();
         vmm_alloc(HEAP_VIRT_START + (i * PAGE_SIZE), phys, 0x03);
     }
+
+    // Map framebuffer into virtual memory
+    // Limine gives us the physical address, but we need to check if it's already offset
+    uint64_t fb_addr = (uint64_t)framebuffer->address;
+    uint64_t fb_phys;
+
+    // If address is in higher half, it's already HHDM-offset, so subtract to get physical
+    if (fb_addr >= g_hhdm_offset) {
+        fb_phys = fb_addr - g_hhdm_offset;
+    } else {
+        fb_phys = fb_addr;
+    }
+
+    uint64_t fb_size = framebuffer->pitch * framebuffer->height;
+    uint64_t fb_pages = (fb_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    kprintf("Framebuffer: addr=%x, phys=%x, size=%x bytes, pages=%d\n",
+            fb_addr, fb_phys, fb_size, fb_pages);
+
+    // Map the framebuffer at its HHDM virtual address
+    for (uint64_t i = 0; i < fb_pages; i++) {
+        vmm_alloc(fb_phys + g_hhdm_offset + (i * PAGE_SIZE),
+                  fb_phys + (i * PAGE_SIZE),
+                  0x13); // Present + Writable + PCD (for MMIO)
+    }
     // new bitmap paging
 
     init_LAPIC();
@@ -131,12 +156,8 @@ void kmain(void) {
         inb(0x60);
     }
     asm volatile("sti");
-    size_t i = 0;
-    while (1) {
-        kprintf("reset %d\n", i);
-        reset(framebuffer);
-        kprintf("end reset %d\n", i);
-        i++;
+    
+    for(;;) {
         screen_saver(framebuffer);
     }
     

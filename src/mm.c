@@ -73,9 +73,9 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags) {
     uint64_t *pt_virt = (uint64_t*)((pd_virt[pd_index] & PTE_MASK) + g_hhdm_offset);
 
     pt_virt[pt_index] = (phys & PTE_MASK) | flags | 1;
-    
+
     asm volatile("invlpg (%0)" :: "r"(virt) : "memory");
-    write_better("\nallocated a page\n");
+    // write_better("\nallocated a page\n"); // Commented out to reduce spam
 
 }
 //------------------------------------VMM------------------------------------------
