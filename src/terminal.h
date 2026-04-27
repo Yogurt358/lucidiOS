@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "mm.h"
 
 #define RGB32_WHITE     0x00FFFFFF
 #define RGB32_BLACK     0x00000000
@@ -15,3 +16,5 @@ void scrollUp(struct limine_framebuffer* _fb);
 void reset(struct limine_framebuffer* _fb);
 uint32_t plasma_pixel(size_t x, size_t y, uint32_t t, uint64_t W, uint64_t H);
 void screen_saver(struct limine_framebuffer* _fb);
+void copy_screen(struct limine_framebuffer* _fb);
+void paste_screen(struct limine_framebuffer* _fb);

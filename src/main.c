@@ -156,10 +156,11 @@ void kmain(void) {
         inb(0x60);
     }
     asm volatile("sti");
-    
+
+    reset(framebuffer);
+
     for(;;) {
-        screen_saver(framebuffer);
+        copy_screen(framebuffer);
     }
-    
     hcf();
 }
