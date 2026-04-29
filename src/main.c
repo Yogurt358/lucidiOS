@@ -65,6 +65,7 @@ uint64_t g_hhdm_offset = 0;
 uint64_t *rsdp_pointer = 0;
 uint64_t ioapic_base = 0;
 size_t bitmap_length = 0;
+bool err = 1;
 volatile uint64_t ticks; // timer ticks every 10ms. 10 seconds to cause screen saver to launch
 
 // The following will be our kernel's entry point.
@@ -160,7 +161,8 @@ void kmain(void) {
     reset(framebuffer);
 
     for(;;) {
-        copy_screen(framebuffer);
+        if(err) {copy_screen(framebuffer);}
+        else {kprintf("Screen Saver Error Detected\n"); break;}
     }
     hcf();
 }

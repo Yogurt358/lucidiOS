@@ -4751,13 +4751,15 @@ uint32_t plasma_pixel(size_t x, size_t y, uint32_t t, uint64_t W, uint64_t H) {
 }
 
 void copy_screen(struct limine_framebuffer* _fb) {
-    
+    extern bool err;
     
     screen_size = (_fb->width)*(_fb->height)*4;
     backup = (uint32_t*)kmalloc(screen_size);
 
-    if (!backup) {
+    if (sizeof(backup) < screen_size) {
         kprintf("Failed to allocate screen backup\n");
+        kprintf("Current backup size: %d\nNeeded backup size:%d\n", sizeof(backup), screen_size);
+        err = 0;
         return;
     }
 
