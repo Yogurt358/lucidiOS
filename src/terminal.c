@@ -4755,10 +4755,10 @@ void copy_screen(struct limine_framebuffer* _fb) {
     
     screen_size = (_fb->width)*(_fb->height)*4;
     backup = (uint32_t*)kmalloc(screen_size);
-
-    if (sizeof(backup) < screen_size) {
+    
+    if (backup == NULL) {
         kprintf("Failed to allocate screen backup\n");
-        kprintf("Current backup size: %d\nNeeded backup size:%d\n", sizeof(backup), screen_size);
+        kprintf("Needed backup size:%d\n", screen_size);
         err = 0;
         return;
     }
@@ -4782,7 +4782,7 @@ void screen_saver(struct limine_framebuffer* _fb) {
     uint32_t t = 0;
 
     for (;;) {
-        if (ticks <= 1000) { t = 0; break;}
+        if (ticks <= 100) { t = 0; break;}
 
         for (size_t i = 0; i < _fb->height; i++)
             for (size_t j = 0; j < _fb->width; j++)

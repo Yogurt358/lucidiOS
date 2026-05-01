@@ -120,10 +120,16 @@ void kmain(void) {
     init_bitmap_pmm(big_map);
     vmm_alloc(g_hhdm_offset + 0xFEE00000, 0xFEE00000, 0x13);
     vmm_alloc(ioapic_base, ioapic_base - g_hhdm_offset, 0x13);
-    for (uint64_t i = 0; i < 512; i++) { // Map 2MB of heap to start with
+    for (uint64_t i = 0; i < HEAP_SIZE / PAGE_SIZE; i++) { // Map full 8MB of heap
         uint64_t phys = pmm_alloc2();
         vmm_alloc(HEAP_VIRT_START + (i * PAGE_SIZE), phys, 0x03);
     }
+
+    // Memory layout sanity check
+    //kprintf("HEAP_BITMAP_VIRT_START = %x\n", HEAP_BITMAP_VIRT_START);
+    //kprintf("Bitmap end = %x\n", HEAP_BITMAP_VIRT_START + (HEAP_BLOCKS / 8));
+    //kprintf("HEAP_VIRT_START = %x\n", HEAP_VIRT_START);
+    //kprintf("Heap end = %x\n", HEAP_VIRT_START + HEAP_SIZE);
 
     // Map framebuffer into virtual memory
     // Limine gives us the physical address, but we need to check if it's already offset
@@ -159,6 +165,8 @@ void kmain(void) {
     asm volatile("sti");
 
     reset(framebuffer);
+    
+    draw_sentence(framebuffer,"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vulputate ut metus eget eleifend. Ut velit quam, efficitur non hendrerit in, dapibus ut velit. Proin enim nisl, posuere ultrices odio et, feugiat iaculis eros. Suspendisse potenti. Aenean at commodo enim. Curabitur imperdiet, urna vel aliquam ornare, felis dolor aliquam odio, et interdum diam justo et erat. Maecenas nec hendrerit nisi. Aenean leo massa, eleifend id vestibulum nec, tristique vitae metus. Vestibulum condimentum elementum purus ut venenatis. Fusce malesuada finibus malesuada. Curabitur ac tristique odio, in luctus magna. Donec scelerisque, enim non posuere accumsan, mauris risus efficitur diam, non tincidunt diam enim non arcu. Nulla sed nibh lacinia, feugiat est nec, tincidunt nunc.");
 
     for(;;) {
         if(err) {copy_screen(framebuffer);}

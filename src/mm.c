@@ -48,24 +48,24 @@ void vmm_alloc(uint64_t virt, uint64_t phys, uint8_t flags) {
     size_t pd_index = (virt>>21)&0x1FF;   // bits 29-21 pd entry
     size_t pt_index = (virt>>12)&0x1FF;   // 20-12 pt entry
 
-    if(!(pml4_virt[pml4_index] & PTE_PRESENT)) { 
-        uint64_t new_table = pmm_alloc2(bitmap_length);
+    if(!(pml4_virt[pml4_index] & PTE_PRESENT)) {
+        uint64_t new_table = pmm_alloc2();
         if (!new_table) { write_better("vmm_alloc: OOM!\n"); return; }
         memset((void*)(new_table + g_hhdm_offset), 0, 4096);
         pml4_virt[pml4_index] = new_table | PTE_PRESENT | PTE_WRITABLE;
     }
     uint64_t *pdpt_virt = (uint64_t*)((pml4_virt[pml4_index] & PTE_MASK) + g_hhdm_offset);
 
-    if(!(pdpt_virt[pdpt_index] & PTE_PRESENT)) { 
-        uint64_t new_table = pmm_alloc2(bitmap_length);
+    if(!(pdpt_virt[pdpt_index] & PTE_PRESENT)) {
+        uint64_t new_table = pmm_alloc2();
         if (!new_table) { write_better("vmm_alloc: OOM!\n"); return; }
         memset((void*)(new_table + g_hhdm_offset), 0, 4096);
         pdpt_virt[pdpt_index] = new_table | PTE_PRESENT | PTE_WRITABLE;
     }
     uint64_t *pd_virt = (uint64_t*)((pdpt_virt[pdpt_index] & PTE_MASK) + g_hhdm_offset);
 
-    if(!(pd_virt[pd_index] & PTE_PRESENT)) { 
-        uint64_t new_table = pmm_alloc2(bitmap_length);
+    if(!(pd_virt[pd_index] & PTE_PRESENT)) {
+        uint64_t new_table = pmm_alloc2();
         if (!new_table) { write_better("vmm_alloc: OOM!\n"); return; }
         memset((void*)(new_table + g_hhdm_offset), 0, 4096);
         pd_virt[pd_index] = new_table | PTE_PRESENT | PTE_WRITABLE;
@@ -148,16 +148,33 @@ void bitmap_pointer(struct limine_memmap_response *map) {
 //------------------------------------HEAP------------------------------------------
 
 void heap_bitmap_pointer() {
-    uint64_t phys_for_bitmap = pmm_alloc2();
-    heap_bitmap = (uint64_t*)(phys_for_bitmap + g_hhdm_offset);
-    memset(heap_bitmap, 0, 8192 * 8);
+    size_t bitmap_bytes = HEAP_BLOCKS / 8;
+    size_t bitmap_pages = (bitmap_bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    // Map each page individually at HEAP_BITMAP_VIRT_START
+    for (size_t i = 0; i < bitmap_pages; i++) {
+        uint64_t phys = pmm_alloc2();
+        vmm_alloc(HEAP_BITMAP_VIRT_START + (i * PAGE_SIZE), phys, 0x03);
+    }
+
+    heap_bitmap = (uint64_t*)HEAP_BITMAP_VIRT_START;
+    memset(heap_bitmap, 0, bitmap_bytes);
 }
 
 void* kmalloc(size_t amount) {
     size_t blocks = (amount + BLOCK_SIZE - 1) / BLOCK_SIZE + 1;
+
+    //kprintf("kmalloc: requested %x bytes = %x blocks\n", amount, blocks);
+    //kprintf("HEAP_BLOCKS = %x\n", HEAP_BLOCKS);
+    
+    if (blocks > HEAP_BLOCKS) {
+        kprintf("ERROR: Request too large for heap!\n");
+        return NULL;
+    }
+    
     size_t contiguous_found = 0;
     size_t start_bit = 0;
-    for (size_t i = 0; i < HEAP_MAX_BLOCKS; i++) {
+    for (size_t i = 0; i < HEAP_BLOCKS; i++) {
         uint64_t array_idx = i / 64;
         uint64_t bit_idx = i % 64;
 
@@ -172,12 +189,14 @@ void* kmalloc(size_t amount) {
                 
                 uint64_t virt_addr = HEAP_VIRT_START + (start_bit * BLOCK_SIZE);
                 *(uint64_t*)virt_addr = blocks; // Write header
+                //kprintf("found enough space!\n");
                 return (void*)(virt_addr + BLOCK_SIZE);
             }
         } else {
             contiguous_found = 0; // Reset search
         }
     }
+    kprintf("Couldn't find enough memory");
     return NULL; // Out of memory
 }
 
