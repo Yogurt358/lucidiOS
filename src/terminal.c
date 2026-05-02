@@ -4733,19 +4733,19 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s) {
 }
 
 uint32_t plasma_pixel(size_t x, size_t y, uint32_t t, uint64_t W, uint64_t H) {
-    uint8_t sx = (uint8_t)((x * 255) / W);
-    uint8_t sy = (uint8_t)((y * 255) / H);
+    uint8_t sx = (uint8_t)((x*255) / W);
+    uint8_t sy = (uint8_t)((y*255) / H);
 
     // Three independent sine waves with different spatial frequencies
-    uint8_t v1 = sine_lut[(sx +  t      ) & 0xFF];
-    uint8_t v2 = sine_lut[(sy +  t *  2 ) & 0xFF];
-    uint8_t v3 = sine_lut[((sx / 2 + sy / 2) + t * 3) & 0xFF];
+    uint8_t v1 = sine_lut[(sx+t) & 0xFF];
+    uint8_t v2 = sine_lut[(sy+t*2) & 0xFF]; // twice the speed
+    uint8_t v3 = sine_lut[((sx/2+sy/2)+t*3) & 0xFF]; // thrice the speed
 
-    // Combine into a single hue index, then fan R/G/B 120° apart
+    // Combine into a single hue index, then fan RGB 120 degrees apart
     uint8_t h = (uint8_t)((v1 + v2 + v3) / 3);
-    uint8_t r = sine_lut[(h      ) & 0xFF];
-    uint8_t g = sine_lut[(h +  85) & 0xFF]; // 85  ≈ 256/3
-    uint8_t b = sine_lut[(h + 170) & 0xFF]; // 170 ≈ 2*256/3
+    uint8_t r = sine_lut[(h) & 0xFF];
+    uint8_t g = sine_lut[(h+ 85) & 0xFF]; // 85  = 256/3
+    uint8_t b = sine_lut[(h+170) & 0xFF]; // 170 = 2*256/3
 
     return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 }
