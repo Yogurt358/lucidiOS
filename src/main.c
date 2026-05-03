@@ -157,7 +157,12 @@ void kmain(void) {
     }
     // new bitmap paging
 
-    init_LAPIC();
+
+    enum status{
+        ONLINE, OFFLINE
+    };
+
+    init_LAPIC();   
     init_IOAPIC();
     while (inb(0x64) & 1) {
         inb(0x60);
@@ -165,9 +170,24 @@ void kmain(void) {
     asm volatile("sti");
 
     reset(framebuffer);
-    
-    draw_sentence(framebuffer,"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vulputate ut metus eget eleifend. Ut velit quam, efficitur non hendrerit in, dapibus ut velit. Proin enim nisl, posuere ultrices odio et, feugiat iaculis eros. Suspendisse potenti. Aenean at commodo enim. Curabitur imperdiet, urna vel aliquam ornare, felis dolor aliquam odio, et interdum diam justo et erat. Maecenas nec hendrerit nisi. Aenean leo massa, eleifend id vestibulum nec, tristique vitae metus. Vestibulum condimentum elementum purus ut venenatis. Fusce malesuada finibus malesuada. Curabitur ac tristique odio, in luctus magna. Donec scelerisque, enim non posuere accumsan, mauris risus efficitur diam, non tincidunt diam enim non arcu. Nulla sed nibh lacinia, feugiat est nec, tincidunt nunc.");
 
+    draw_logo(framebuffer, RGB32_BLACK, RGB32_PURPLE);
+    sleep(5);
+
+    logo_reset(framebuffer);
+
+    ticks = 0; // reset ticks for screen saver to not fire too early
+    
+    draw_sentence(framebuffer, "Hello this passage right here details ", RGB32_WHITE);
+    draw_sentence(framebuffer, "information ", RGB32_BLUE);
+    draw_sentence(framebuffer, "which would be very helpful to you.\nShould you encounter any ", RGB32_WHITE);
+    draw_sentence(framebuffer, "errors ", RGB32_RED);
+    draw_sentence(framebuffer, "try to reboot the system :)", RGB32_WHITE);
+    
+
+    //kprintf("max fb width:%d\nmax fb height:%d\n", framebuffer->width, framebuffer->height);
+
+    
     for(;;) {
         if(err) {copy_screen(framebuffer);}
         else {kprintf("Screen Saver Error Detected\n"); break;}

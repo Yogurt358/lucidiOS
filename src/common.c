@@ -177,7 +177,7 @@ void kprintf(const char* fmt, ...) {
 
 void sleep(uint32_t seconds) {
     // 1 second = 100 ticks (if 1 tick = 10ms)
-    uint64_t target_ticks = ticks + (1*seconds);
+    uint64_t target_ticks = ticks + (100*seconds);
     while (ticks < target_ticks) {
         asm volatile("pause"); // Optimization for busy-wait loops
     }
