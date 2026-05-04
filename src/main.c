@@ -182,8 +182,12 @@ void kmain(void) {
     draw_sentence(framebuffer, "information ", RGB32_BLUE);
     draw_sentence(framebuffer, "which would be very helpful to you.\nShould you encounter any ", RGB32_WHITE);
     draw_sentence(framebuffer, "errors ", RGB32_RED);
-    draw_sentence(framebuffer, "try to reboot the system :)", RGB32_WHITE);
-    
+    draw_sentence(framebuffer, "try to reboot the system :)\n", RGB32_WHITE);
+
+    draw_sentence(framebuffer, "LucidiOS ", RGB32_PURPLE);
+    draw_sentence(framebuffer, "is an Operating System developed by ", RGB32_WHITE);
+    draw_sentence(framebuffer, "Roy Berenstein.", RGB32_YELLOW);
+
 
     //kprintf("max fb width:%d\nmax fb height:%d\n", framebuffer->width, framebuffer->height);
 

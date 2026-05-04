@@ -8,6 +8,7 @@
 #define RGB32_RED       0x00FF0000
 #define RGB32_GREEN     0x00006600
 #define RGB32_BLUE      0x0000BFFF
+#define RGB32_YELLOW    0x00FFFF00
 
 #define LOGO_WIDTH   160
 #define LOGO_HEIGHT  100

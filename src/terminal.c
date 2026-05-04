@@ -4865,11 +4865,10 @@ uint32_t plasma_pixel(size_t x, size_t y, uint32_t t, uint64_t W, uint64_t H) {
     uint8_t sy = (uint8_t)((y*255) / H);
 
     // Three independent sine waves with different spatial frequencies
-    uint8_t v1 = sine_lut[(sx+t) & 0xFF];
-    uint8_t v2 = sine_lut[(sy+t*2) & 0xFF]; // twice the speed
-    uint8_t v3 = sine_lut[((sx/2+sy/2)+t*3) & 0xFF]; // thrice the speed
+    uint8_t v1 = sine_lut[(sx+t*1) & 0xFF];
+    uint8_t v2 = sine_lut[(sy+t*1) & 0xFF];
+    uint8_t v3 = sine_lut[((sx/2+sy/2)+t*3) & 0xFF];
 
-    // Combine into a single hue index, then fan RGB 120 degrees apart
     uint8_t h = (uint8_t)((v1 + v2 + v3) / 3);
     uint8_t r = sine_lut[(h) & 0xFF];
     uint8_t g = sine_lut[(h+ 85) & 0xFF]; // 85  = 256/3
@@ -4925,9 +4924,7 @@ void draw_logo(struct limine_framebuffer *_fb, uint32_t fg_color, uint32_t bg_co
     const size_t draw_w = LOGO_WIDTH  * LOGO_SCALE;
     const size_t draw_h = LOGO_HEIGHT * LOGO_SCALE;
 
-    // Defensive: refuse to draw if the framebuffer can't fit the logo.
-    // Without this, a small framebuffer would silently cause draw_pixel
-    // to write off-screen (corrupting whatever maps after the FB).
+    
     if (_fb->width < draw_w || _fb->height < draw_h) {
         return;
     }
@@ -4948,11 +4945,7 @@ void draw_logo(struct limine_framebuffer *_fb, uint32_t fg_color, uint32_t bg_co
             size_t px = origin_x + sx * LOGO_SCALE;
             size_t py = origin_y + sy * LOGO_SCALE;
 
-            // Fill the SCALE x SCALE block.
-            // Note: this calls draw_pixel SCALE*SCALE times per source pixel,
-            // which is fine for a one-shot boot logo. If you ever animate the
-            // logo, write directly into the framebuffer with a row-pointer
-            // loop instead — same data, ~10x faster, no function-call overhead.
+        
             for (size_t dy = 0; dy < LOGO_SCALE; dy++) {
                 for (size_t dx = 0; dx < LOGO_SCALE; dx++) {
                     draw_pixel(_fb, px + dx, py + dy, color);
