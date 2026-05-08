@@ -1,10 +1,10 @@
 #pragma once
 #include "common.h"
 
-#define EOF 0x0FFFFFF8
-#define FAT32_BASE_ADDRESS 0x0 // how do I know the address?
+#define EOF                            0x0FFFFFF8
+//#define FAT32_BASE_ADDRESS(fat)        (uint64_t*)(fat->address)
 
-struct FAT32_BPB {
+struct fat32_bpb {
     uint8_t  jmp_boot[3];                   // Offset 0-2 
     char     oem_name[8];                   //  3-10
     uint16_t bytes_per_sector;              //  11-12 (512)  
@@ -20,7 +20,7 @@ struct FAT32_BPB {
     uint32_t hidden_sectors;                //  28-31 (0)
     uint32_t total_sectors_32;               //  32-35
     // ===== FAT32-SPECIFIC FIELDS =====
-    uint32_t sectors_per_fat_32;            //  36-39
+    uint32_t sectors_per_fat_32;            //  36-39x
     uint16_t extended_flags;                //  40-41
     uint16_t filesystem_version;            //  42-43
     uint32_t root_cluster;                  //  44-47 (2)
@@ -37,6 +37,47 @@ struct FAT32_BPB {
     
 } __attribute__((packed));
 
-typedef struct FAT32_BPB bpb_t;
+struct fat32_context{
+    void*     base_address;
+    size_t    image_size;
+    struct fat32_bpb*    bpb;
+    uint32_t* fat_table;
+    void*     data_region;
+    uint32_t  cluster_size;
+    bool      initialized;
+} __attribute__((packed));
+
+typedef struct fat32_bpb bpb_t;
+typedef struct fat32_context fat32_context_t;
 
 void init_FS(void);
+
+fat32_context_t* get_fat32_context(void);
+
+static inline uint32_t fat32_get_next_cluster(fat32_context_t* ctx, uint32_t cluster) {
+    if (!ctx || !ctx->initialized) return EOF;
+    // only lower 28 bits are used
+    return ctx->fat_table[cluster] & 0x0FFFFFFF;
+}
+
+static inline void* fat32_get_cluster_address(fat32_context_t* ctx, uint32_t cluster) {
+    if (!ctx || !ctx->initialized || cluster < 2) return NULL;
+    // Cluster 2 is at offset 0 in the data region
+    uint32_t offset = (cluster - 2) * ctx->cluster_size;
+    return (void*)((uint8_t*)ctx->data_region + offset);
+}
+
+static inline bool fat32_is_eof(uint32_t cluster) {
+    return cluster >= 0x0FFFFFF8;
+}
+
+static inline bool fat32_is_free(uint32_t cluster) {
+    return cluster == 0x00000000;
+}
+
+static inline bool fat32_is_bad(uint32_t cluster) {
+    return cluster == 0x0FFFFFF7;
+}
+
+// Example function: Demonstrate reading a cluster chain
+void fat32_read_cluster_chain(uint32_t start_cluster);

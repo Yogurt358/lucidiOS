@@ -140,6 +140,7 @@ $(ISO): bin/$(OUTPUT)
 	mkdir -p $(ISO_ROOT)/EFI/BOOT
 
 	cp bin/$(OUTPUT) $(ISO_ROOT)/boot/
+	cp fat32.img $(ISO_ROOT)/
 	cp limine.conf \
 	   limine/limine-bios.sys \
 	   limine/limine-bios-cd.bin \

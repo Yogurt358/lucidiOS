@@ -54,6 +54,7 @@ extern void isr_handler_C(stack_frame_t *frame) {
             asm volatile("mov %%cr2, %0" : "=a"(faulting_address)::);
             kprintf("%x\n", faulting_address);
             kprintf("Faulting instruction: %x\n", frame->rip);
+            kprintf("Error code: %x\n", frame->code);
             for(;;);
             break;
 

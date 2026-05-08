@@ -3,6 +3,7 @@
 #include "apic.h"
 #include "segments.h"
 #include "mm.h"
+#include "filesystem.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -14,7 +15,14 @@ static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent, _and_ they should be accessed at least
-// once or marked as used with the "used" attribute as done here.
+// once or marked as used with the "used" attribute as done here. 
+
+// Module request for external modules (loaded via limine.conf)
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_module_request module_request = {
+    .id = LIMINE_MODULE_REQUEST_ID,
+    .revision = 0
+};
 
 __attribute__((used, section(".limine_requests")))                                  // framebuffer
 static volatile struct limine_framebuffer_request framebuffer_request = {
@@ -67,8 +75,8 @@ uint64_t ioapic_base = 0;
 size_t bitmap_length = 0;
 bool err = 1;
 volatile uint64_t ticks; // timer ticks every 10ms. 10 seconds to cause screen saver to launch
+struct limine_file *fat32;
 
-// The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the
 // linker script accordingly.
 void kmain(void) {
@@ -109,11 +117,21 @@ void kmain(void) {
         hcf();
     }
 
+    if (module_request.response == NULL
+    || module_request.response->module_count < 1) {
+        write_better("FAT32 module not loaded!\n");
+        hcf();
+    }
+
 
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     g_hhdm_offset = hhdm_request.response->offset;
     rsdp_pointer = rsdp_request.response->address;
-    struct limine_memmap_response *big_map = memmap_request.response;
+    struct limine_memmap_response *big_map = memmap_request.response;    
+
+    fat32 = module_request.response->modules[0];
+    //kprintf("FAT32 loaded - path: %s, size: %d bytes, addr: %x\n",
+    //        fat32->path, fat32->size, fat32->address);
     madt_parsing();
 
     // new bitmap paging
@@ -125,14 +143,12 @@ void kmain(void) {
         vmm_alloc(HEAP_VIRT_START + (i * PAGE_SIZE), phys, 0x03);
     }
 
-    // Memory layout sanity check
     //kprintf("HEAP_BITMAP_VIRT_START = %x\n", HEAP_BITMAP_VIRT_START);
     //kprintf("Bitmap end = %x\n", HEAP_BITMAP_VIRT_START + (HEAP_BLOCKS / 8));
     //kprintf("HEAP_VIRT_START = %x\n", HEAP_VIRT_START);
     //kprintf("Heap end = %x\n", HEAP_VIRT_START + HEAP_SIZE);
 
     // Map framebuffer into virtual memory
-    // Limine gives us the physical address, but we need to check if it's already offset
     uint64_t fb_addr = (uint64_t)framebuffer->address;
     uint64_t fb_phys;
 
@@ -146,8 +162,8 @@ void kmain(void) {
     uint64_t fb_size = framebuffer->pitch * framebuffer->height;
     uint64_t fb_pages = (fb_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-    kprintf("Framebuffer: addr=%x, phys=%x, size=%x bytes, pages=%d\n",
-            fb_addr, fb_phys, fb_size, fb_pages);
+    //kprintf("Framebuffer: addr=%x, phys=%x, size=%x bytes, pages=%d\n",
+    //        fb_addr, fb_phys, fb_size, fb_pages);
 
     // Map the framebuffer at its HHDM virtual address
     for (uint64_t i = 0; i < fb_pages; i++) {
@@ -162,12 +178,20 @@ void kmain(void) {
         ONLINE, OFFLINE
     };
 
-    init_LAPIC();   
+    init_LAPIC();
     init_IOAPIC();
     while (inb(0x64) & 1) {
         inb(0x60);
     }
     asm volatile("sti");
+
+    // Initialize FAT32 filesystem
+    init_FS();
+
+    fat32_context_t* fs_ctx = get_fat32_context();
+    if (fs_ctx && fs_ctx->initialized) {
+        fat32_read_cluster_chain(fs_ctx->bpb->root_cluster);
+    }
 
     reset(framebuffer);
 
