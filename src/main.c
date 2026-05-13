@@ -4,6 +4,7 @@
 #include "segments.h"
 #include "mm.h"
 #include "filesystem.h"
+#include "shell.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -15,7 +16,7 @@ static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
 // The Limine requests can be placed anywhere, but it is important that
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent, _and_ they should be accessed at least
-// once or marked as used with the "used" attribute as done here. 
+// once or marked as used with the "used" attribute as done here.
 
 // Module request for external modules (loaded via limine.conf)
 __attribute__((used, section(".limine_requests")))
@@ -94,7 +95,7 @@ void kmain(void) {
     // Ensure we got a framebuffer.
     if (framebuffer_request.response == NULL
      || framebuffer_request.response->framebuffer_count < 1) {
-    
+
         write_better("framebuffer ain't valid");
         hcf();
     }
@@ -127,7 +128,7 @@ void kmain(void) {
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     g_hhdm_offset = hhdm_request.response->offset;
     rsdp_pointer = rsdp_request.response->address;
-    struct limine_memmap_response *big_map = memmap_request.response;    
+    struct limine_memmap_response *big_map = memmap_request.response;
 
     fat32 = module_request.response->modules[0];
     //kprintf("FAT32 loaded - path: %s, size: %d bytes, addr: %x\n",
@@ -143,11 +144,6 @@ void kmain(void) {
         vmm_alloc(HEAP_VIRT_START + (i * PAGE_SIZE), phys, 0x03);
     }
 
-    //kprintf("HEAP_BITMAP_VIRT_START = %x\n", HEAP_BITMAP_VIRT_START);
-    //kprintf("Bitmap end = %x\n", HEAP_BITMAP_VIRT_START + (HEAP_BLOCKS / 8));
-    //kprintf("HEAP_VIRT_START = %x\n", HEAP_VIRT_START);
-    //kprintf("Heap end = %x\n", HEAP_VIRT_START + HEAP_SIZE);
-
     // Map framebuffer into virtual memory
     uint64_t fb_addr = (uint64_t)framebuffer->address;
     uint64_t fb_phys;
@@ -161,9 +157,6 @@ void kmain(void) {
 
     uint64_t fb_size = framebuffer->pitch * framebuffer->height;
     uint64_t fb_pages = (fb_size + PAGE_SIZE - 1) / PAGE_SIZE;
-
-    //kprintf("Framebuffer: addr=%x, phys=%x, size=%x bytes, pages=%d\n",
-    //        fb_addr, fb_phys, fb_size, fb_pages);
 
     // Map the framebuffer at its HHDM virtual address
     for (uint64_t i = 0; i < fb_pages; i++) {
@@ -201,7 +194,7 @@ void kmain(void) {
     logo_reset(framebuffer);
 
     ticks = 0; // reset ticks for screen saver to not fire too early
-    
+
     draw_sentence(framebuffer, "Hello this passage right here details ", RGB32_WHITE);
     draw_sentence(framebuffer, "information ", RGB32_BLUE);
     draw_sentence(framebuffer, "which would be very helpful to you.\nShould you encounter any ", RGB32_WHITE);
@@ -210,8 +203,9 @@ void kmain(void) {
 
     draw_sentence(framebuffer, "LucidiOS ", RGB32_PURPLE);
     draw_sentence(framebuffer, "is an Operating System developed by ", RGB32_WHITE);
-    draw_sentence(framebuffer, "Roy Berenstein.", RGB32_YELLOW);
+    draw_sentence(framebuffer, "Roy Berenstein.\n", RGB32_YELLOW);
 
+    // Quick FAT32 smoke test before handing the screen to the shell.
     int fd = fat32_open("/hello.txt", O_WRONLY | O_CREATE);
     fat32_write(fd, "greetings", 9);
     fat32_close(fd);
@@ -221,10 +215,8 @@ void kmain(void) {
     int n = fat32_read(fd, buf, 31);
     fat32_close(fd);
     kprintf("read back %d bytes: %s\n", n, buf);
-        
-    for(;;) {
-        if(err) {copy_screen(framebuffer);}
-        else {kprintf("Screen Saver Error Detected\n"); break;}
-    }
-    hcf();
+
+    shell_run(framebuffer);
+
+    hcf();  // unreachable
 }

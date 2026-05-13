@@ -4838,15 +4838,17 @@ void draw_sentence(struct limine_framebuffer* _fb, char* s, uint32_t color) {
             case '\r':
                 column = 0;
                 break;
-            case '\t':
-                if(column >= max_cols) {
-                    newLine(_fb);
-                }
+            case '\t': {
                 uint16_t tabLen = 4;
                 for(int x = 0; x < tabLen; x++) {
-                    draw_character(_fb, (column++*8), line*16, 255, RGB32_BLACK);
+                    if (column >= max_cols) {
+                        newLine(_fb);
+                    }
+                    draw_character(_fb, column * 8, line * 16, ' ', color);
+                    column++;
                 }
                 break;
+            }
             default:
                 if (column >= max_cols) {
                     newLine(_fb);
