@@ -212,10 +212,16 @@ void kmain(void) {
     draw_sentence(framebuffer, "is an Operating System developed by ", RGB32_WHITE);
     draw_sentence(framebuffer, "Roy Berenstein.", RGB32_YELLOW);
 
+    int fd = fat32_open("/hello.txt", O_WRONLY | O_CREATE);
+    fat32_write(fd, "greetings", 9);
+    fat32_close(fd);
 
-    //kprintf("max fb width:%d\nmax fb height:%d\n", framebuffer->width, framebuffer->height);
-
-    
+    char buf[32] = {0};
+    fd = fat32_open("/hello.txt", O_RDONLY);
+    int n = fat32_read(fd, buf, 31);
+    fat32_close(fd);
+    kprintf("read back %d bytes: %s\n", n, buf);
+        
     for(;;) {
         if(err) {copy_screen(framebuffer);}
         else {kprintf("Screen Saver Error Detected\n"); break;}
